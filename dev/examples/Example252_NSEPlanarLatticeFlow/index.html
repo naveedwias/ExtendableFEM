@@ -14,96 +14,96 @@ using ExtendableGrids
 
 # exact velocity (and Dirichlet data)
 function u!(result, qpinfo)
-    x = qpinfo.x
-    result[1] = sin(2*pi*x[1])*sin(2*pi*x[2])
-    result[2] = cos(2*pi*x[1])*cos(2*pi*x[2])
+	x = qpinfo.x
+	result[1] = sin(2 * pi * x[1]) * sin(2 * pi * x[2])
+	result[2] = cos(2 * pi * x[1]) * cos(2 * pi * x[2])
 end
 
 # right-hand side f := -μ Δu + (u⋅∇)u + ∇p
 function f!(μ)
-    α = [0,0]
-    function closure(result, qpinfo)
-        x = qpinfo.x
-        result[1] = (μ*8*pi^2 + α[1])*sin(2*pi*x[1])*sin(2*pi*x[2]);
-        result[2] = (μ*8*pi^2 + α[2])*cos(2*pi*x[1])*cos(2*pi*x[2]);
-    end
+	α = [0, 0]
+	function closure(result, qpinfo)
+		x = qpinfo.x
+		result[1] = (μ * 8 * pi^2 + α[1]) * sin(2 * pi * x[1]) * sin(2 * pi * x[2])
+		result[2] = (μ * 8 * pi^2 + α[2]) * cos(2 * pi * x[1]) * cos(2 * pi * x[2])
+	end
 end
 
 # exact pressure
 function p!(result, qpinfo)
-    x = qpinfo.x
-    result[1] = (cos(4*pi*x[1])-cos(4*pi*x[2])) / 4
+	x = qpinfo.x
+	result[1] = (cos(4 * pi * x[1]) - cos(4 * pi * x[2])) / 4
 end
 
 function kernel_nonlinear!(result, u_ops, qpinfo)
-    u, ∇u, p = view(u_ops, 1:2), view(u_ops,3:6), view(u_ops, 7)
-    μ = qpinfo.params[1]
-    result[1] = dot(u, view(∇u,1:2))
-    result[2] = dot(u, view(∇u,3:4))
-    result[3] = μ*∇u[1] - p[1]
-    result[4] = μ*∇u[2]
-    result[5] = μ*∇u[3]
-    result[6] = μ*∇u[4] - p[1]
-    result[7] = -(∇u[1] + ∇u[4])
-    return nothing
+	u, ∇u, p = view(u_ops, 1:2), view(u_ops, 3:6), view(u_ops, 7)
+	μ = qpinfo.params[1]
+	result[1] = dot(u, view(∇u, 1:2))
+	result[2] = dot(u, view(∇u, 3:4))
+	result[3] = μ * ∇u[1] - p[1]
+	result[4] = μ * ∇u[2]
+	result[5] = μ * ∇u[3]
+	result[6] = μ * ∇u[4] - p[1]
+	result[7] = -(∇u[1] + ∇u[4])
+	return nothing
 end
 
 function exact_error!(result, u, qpinfo)
-    u!(result, qpinfo)
-    p!(view(result,3), qpinfo)
-    result .-= u
-    result .= result.^2
+	u!(result, qpinfo)
+	p!(view(result, 3), qpinfo)
+	result .-= u
+	result .= result .^ 2
 end
 
 function main(; μ = 0.001, nrefs = 5, reconstruct = true, Plotter = nothing, kwargs...)
 
-    # problem description
-    PD = ProblemDescription()
-    u = Unknown(&quot;u&quot;; name = &quot;velocity&quot;)
-    p = Unknown(&quot;p&quot;; name = &quot;pressure&quot;)
-    id_u = reconstruct ? apply(u, Reconstruct{HDIVBDM1{2}, Identity}) : id(u)
+	# problem description
+	PD = ProblemDescription()
+	u = Unknown(&quot;u&quot;; name = &quot;velocity&quot;)
+	p = Unknown(&quot;p&quot;; name = &quot;pressure&quot;)
+	id_u = reconstruct ? apply(u, Reconstruct{HDIVBDM1{2}, Identity}) : id(u)
 
-    assign_unknown!(PD, u)
-    assign_unknown!(PD, p)
-    assign_operator!(PD, NonlinearOperator(kernel_nonlinear!, [id_u, grad(u), id(p)]; params = [μ], kwargs...))
-    assign_operator!(PD, LinearOperator(f!(μ), [id_u]; kwargs...))
-    assign_operator!(PD, InterpolateBoundaryData(u, u!; regions = 1:4))
+	assign_unknown!(PD, u)
+	assign_unknown!(PD, p)
+	assign_operator!(PD, NonlinearOperator(kernel_nonlinear!, [id_u, grad(u), id(p)]; params = [μ], kwargs...))
+	assign_operator!(PD, LinearOperator(f!(μ), [id_u]; kwargs...))
+	assign_operator!(PD, InterpolateBoundaryData(u, u!; regions = 1:4))
 
-    # grid
-    xgrid = uniform_refine(grid_unitsquare(Triangle2D), nrefs)
+	# grid
+	xgrid = uniform_refine(grid_unitsquare(Triangle2D), nrefs)
 
-    # prepare FESpace
-    FES = [FESpace{H1BR{2}}(xgrid), FESpace{L2P0{1}}(xgrid)]
+	# prepare FESpace
+	FES = [FESpace{H1BR{2}}(xgrid), FESpace{L2P0{1}}(xgrid)]
 
-    # solve
+	# solve
 	sol = solve(PD, FES; kwargs...)
 
-    # move integral mean of pressure
-    pintegrate = ItemIntegrator([id(p)])
-    pmean = sum(evaluate(pintegrate, sol)) / sum(xgrid[CellVolumes])
-    view(sol[p]) .-= pmean
+	# move integral mean of pressure
+	pintegrate = ItemIntegrator([id(p)])
+	pmean = sum(evaluate(pintegrate, sol)) / sum(xgrid[CellVolumes])
+	view(sol[p]) .-= pmean
 
-    # error calculation
-    ErrorIntegratorExact = ItemIntegrator(exact_error!, [id(u), id(p)]; quadorder = 4, params = [μ], kwargs...)
-    error = evaluate(ErrorIntegratorExact, sol)
-    L2errorU = sqrt(sum(view(error,1,:)) + sum(view(error,2,:)))
-    L2errorP = sqrt(sum(view(error,3,:)))
-    @info &quot;L2error(u) = $L2errorU&quot;
-    @info &quot;L2error(p) = $L2errorP&quot;
+	# error calculation
+	ErrorIntegratorExact = ItemIntegrator(exact_error!, [id(u), id(p)]; quadorder = 4, params = [μ], kwargs...)
+	error = evaluate(ErrorIntegratorExact, sol)
+	L2errorU = sqrt(sum(view(error, 1, :)) + sum(view(error, 2, :)))
+	L2errorP = sqrt(sum(view(error, 3, :)))
+	@info &quot;L2error(u) = $L2errorU&quot;
+	@info &quot;L2error(p) = $L2errorP&quot;
 
-    # plot
-    p=GridVisualizer(; Plotter = Plotter, layout = (1,1), clear = true, size = (1200,1200))
-    scalarplot!(p[1,1], xgrid, nodevalues(sol[u]; abs = true)[1,:]; Plotter = Plotter)
-    vectorplot!(p[1,1], xgrid, eval_func(PointEvaluator([id(u)], sol)), spacing = 0.05, clear = false)
+	# plot
+	p = GridVisualizer(; Plotter = Plotter, layout = (1, 1), clear = true, size = (1200, 1200))
+	scalarplot!(p[1, 1], xgrid, nodevalues(sol[u]; abs = true)[1, :]; Plotter = Plotter)
+	vectorplot!(p[1, 1], xgrid, eval_func(PointEvaluator([id(u)], sol)), spacing = 0.05, clear = false)
 end
 
 end # module</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><p><strong>Default output:</strong></p><pre><code class="nohighlight hljs">julia&gt; Example252_NSEPlanarLatticeFlow.main()
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.75
-   1	1.251e-01	8.924e-14	0.59	0.17	0.76		11.78	63.74	75.52
+   1	1.251e-01	8.924e-14	0.56	0.17	0.74		11.78	63.74	75.52
    2	9.161e-02	1.363e-13	0.56	0.15	0.71		6.53	65.77	72.30
    3	4.279e-07	9.485e-13	0.55	0.12	0.67		0.96	54.04	55.00
  END	3.381e-11			0.55		0.55		0.96		0.96
-	converged				SUM --&gt;	2.69			SUM --&gt;	204.54
-</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example250_NSELidDrivenCavity/">« 250 : Navier–Stokes Lid-driven cavity</a><a class="docs-footer-nextpage" href="../Example260_AxisymmetricNavierStokesProblem/">260 : Axisymmetric Stokes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:09">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+	converged				SUM --&gt;	2.65			SUM --&gt;	204.54
+</code></pre><p><img src="../../images/Example252_NSEPlanarLatticeFlow_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example250_NSELidDrivenCavity/">« 250 : Navier–Stokes Lid-driven cavity</a><a class="docs-footer-nextpage" href="../Example260_AxisymmetricNavierStokesProblem/">260 : Axisymmetric Stokes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:33">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

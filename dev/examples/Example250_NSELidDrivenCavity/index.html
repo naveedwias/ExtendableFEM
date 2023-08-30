@@ -10,144 +10,144 @@ using GridVisualize
 using ExtendableGrids
 
 function kernel_nonlinear!(result, u_ops, qpinfo)
-    u, ∇u, p = view(u_ops, 1:2), view(u_ops,3:6), view(u_ops, 7)
-    μ = qpinfo.params[1]
-    result[1] = dot(u, view(∇u,1:2))
-    result[2] = dot(u, view(∇u,3:4))
-    result[3] = μ*∇u[1] - p[1]
-    result[4] = μ*∇u[2]
-    result[5] = μ*∇u[3]
-    result[6] = μ*∇u[4] - p[1]
-    result[7] = -(∇u[1] + ∇u[4])
-    return nothing
+	u, ∇u, p = view(u_ops, 1:2), view(u_ops, 3:6), view(u_ops, 7)
+	μ = qpinfo.params[1]
+	result[1] = dot(u, view(∇u, 1:2))
+	result[2] = dot(u, view(∇u, 3:4))
+	result[3] = μ * ∇u[1] - p[1]
+	result[4] = μ * ∇u[2]
+	result[5] = μ * ∇u[3]
+	result[6] = μ * ∇u[4] - p[1]
+	result[7] = -(∇u[1] + ∇u[4])
+	return nothing
 end
 
 function boundarydata!(result, qpinfo)
-    result[1] = 1
-    result[2] = 0
+	result[1] = 1
+	result[2] = 0
 end
 
 function initialgrid_cone()
-    xgrid=ExtendableGrid{Float64,Int32}()
-    xgrid[Coordinates] = Array{Float64,2}([-1 0; 0 -2; 1 0]&#39;)
-    xgrid[CellNodes]=Array{Int32,2}([1 2 3]&#39;)
-    xgrid[CellGeometries]=VectorOfConstants{ElementGeometries,Int}(Triangle2D,1)
-    xgrid[CellRegions]=ones(Int32,1)
-    xgrid[BFaceRegions]=Array{Int32,1}([1,2,3])
-    xgrid[BFaceNodes]=Array{Int32,2}([1 2; 2 3; 3 1]&#39;)
-    xgrid[BFaceGeometries]=VectorOfConstants{ElementGeometries,Int}(Edge1D,3)
-    xgrid[CoordinateSystem]=Cartesian2D
-    return xgrid
+	xgrid = ExtendableGrid{Float64, Int32}()
+	xgrid[Coordinates] = Array{Float64, 2}([-1 0; 0 -2; 1 0]&#39;)
+	xgrid[CellNodes] = Array{Int32, 2}([1 2 3]&#39;)
+	xgrid[CellGeometries] = VectorOfConstants{ElementGeometries, Int}(Triangle2D, 1)
+	xgrid[CellRegions] = ones(Int32, 1)
+	xgrid[BFaceRegions] = Array{Int32, 1}([1, 2, 3])
+	xgrid[BFaceNodes] = Array{Int32, 2}([1 2; 2 3; 3 1]&#39;)
+	xgrid[BFaceGeometries] = VectorOfConstants{ElementGeometries, Int}(Edge1D, 3)
+	xgrid[CoordinateSystem] = Cartesian2D
+	return xgrid
 end
 
 function main(; μ_final = 0.001, nrefs = 5, reconstruct = true, Plotter = nothing, kwargs...)
 
-    # prepare parameter field
-	extra_params = Array{Float64,1}([max(μ_final, 0.01)])
+	# prepare parameter field
+	extra_params = Array{Float64, 1}([max(μ_final, 0.01)])
 
-    # problem description
-    PD = ProblemDescription()
-    u = Unknown(&quot;u&quot;; name = &quot;velocity&quot;)
-    p = Unknown(&quot;p&quot;; name = &quot;pressure&quot;)
-    id_u = reconstruct ? apply(u, Reconstruct{HDIVBDM1{2}, Identity}) : id(u)
+	# problem description
+	PD = ProblemDescription()
+	u = Unknown(&quot;u&quot;; name = &quot;velocity&quot;)
+	p = Unknown(&quot;p&quot;; name = &quot;pressure&quot;)
+	id_u = reconstruct ? apply(u, Reconstruct{HDIVBDM1{2}, Identity}) : id(u)
 
-    assign_unknown!(PD, u)
-    assign_unknown!(PD, p)
-    assign_operator!(PD, NonlinearOperator(kernel_nonlinear!, [id_u, grad(u), id(p)]; params = extra_params, kwargs...))
-    assign_operator!(PD, InterpolateBoundaryData(u, boundarydata!; regions = 3))
-    assign_operator!(PD, HomogeneousBoundaryData(u; regions = [1,2]))
+	assign_unknown!(PD, u)
+	assign_unknown!(PD, p)
+	assign_operator!(PD, NonlinearOperator(kernel_nonlinear!, [id_u, grad(u), id(p)]; params = extra_params, kwargs...))
+	assign_operator!(PD, InterpolateBoundaryData(u, boundarydata!; regions = 3))
+	assign_operator!(PD, HomogeneousBoundaryData(u; regions = [1, 2]))
 
-    # grid
-    xgrid = uniform_refine(initialgrid_cone(), nrefs)
+	# grid
+	xgrid = uniform_refine(initialgrid_cone(), nrefs)
 
-    # prepare FESpace
-    FES = [FESpace{H1BR{2}}(xgrid), FESpace{L2P0{1}}(xgrid)]
+	# prepare FESpace
+	FES = [FESpace{H1BR{2}}(xgrid), FESpace{L2P0{1}}(xgrid)]
 
-    # prepare plots
-    p=GridVisualizer(; Plotter = Plotter, layout = (1,1), clear = true, size = (1200,1200))
+	# prepare plots
+	p = GridVisualizer(; Plotter = Plotter, layout = (1, 1), clear = true, size = (1200, 1200))
 
-    # solve by μ embedding
+	# solve by μ embedding
 	step = 0
-    sol = nothing
-    SC = nothing
-    PE = PointEvaluator([id(1)])
+	sol = nothing
+	SC = nothing
+	PE = PointEvaluator([id(1)])
 	while (true)
 		step += 1
 		@info &quot;Step $step : solving for μ=$(extra_params[1])&quot;
-        sol, SC = ExtendableFEM.solve(PD, FES, SC; return_config = true, target_residual = 1e-10, maxiterations = 20, kwargs...)
-        if step == 1
-            initialize!(PE, sol)
-        end
-        scalarplot!(p[1,1], xgrid, nodevalues(sol[1]; abs = true)[1,:]; title = &quot;μ = $(extra_params[1])&quot;, Plotter = Plotter)
-		vectorplot!(p[1,1], xgrid, eval_func(PE), spacing = 0.05, clear = false)
+		sol, SC = ExtendableFEM.solve(PD, FES, SC; return_config = true, target_residual = 1e-10, maxiterations = 20, kwargs...)
+		if step == 1
+			initialize!(PE, sol)
+		end
+		scalarplot!(p[1, 1], xgrid, nodevalues(sol[1]; abs = true)[1, :]; title = &quot;μ = $(extra_params[1])&quot;, Plotter = Plotter)
+		vectorplot!(p[1, 1], xgrid, eval_func(PE), spacing = 0.05, clear = false)
 
-        if extra_params[1] &lt;= μ_final
+		if extra_params[1] &lt;= μ_final
 			break
-        else
-            extra_params[1] = max(μ_final, extra_params[1]/2)
+		else
+			extra_params[1] = max(μ_final, extra_params[1] / 2)
 		end
 	end
 
-    @info sol
-    scalarplot!(p[1,1], xgrid, nodevalues(sol[1]; abs = true)[1,:]; title = &quot;μ = $(extra_params[1])&quot;, Plotter = Plotter)
-    vectorplot!(p[1,1], xgrid, eval_func(PE), spacing = 0.05, clear = false)
+	@info sol
+	scalarplot!(p[1, 1], xgrid, nodevalues(sol[1]; abs = true)[1, :]; title = &quot;μ = $(extra_params[1])&quot;, Plotter = Plotter)
+	vectorplot!(p[1, 1], xgrid, eval_func(PE), spacing = 0.05, clear = false)
 
-    writeVTK(&quot;Example250_output.vtu&quot;, xgrid; velocity = nodevalues(sol[1]), pressure = nodevalues(sol[2]), cellregions = xgrid[CellRegions])
+	writeVTK(&quot;Example250_output.vtu&quot;, xgrid; velocity = nodevalues(sol[1]), pressure = nodevalues(sol[2]), cellregions = xgrid[CellRegions])
 end
 
 end # module</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><p><strong>Default output:</strong></p><pre><code class="nohighlight hljs">julia&gt; Example250_NSELidDrivenCavity.main()
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.21
-   1	7.213e-02	9.485e-15	0.13	0.02	0.16		2.92	11.14	14.06
-   2	3.387e-02	6.084e-15	0.13	0.08	0.21		1.85	11.93	13.78
+   1	7.213e-02	9.485e-15	0.13	0.03	0.16		2.92	11.14	14.06
+   2	3.387e-02	6.084e-15	0.13	0.02	0.16		1.85	11.93	13.78
    3	4.795e-03	3.527e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   4	2.801e-04	3.641e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   5	2.310e-07	5.566e-15	0.13	0.02	0.15		0.25	8.95	9.21
+   4	2.801e-04	3.641e-15	0.14	0.05	0.18		0.25	8.95	9.21
+   5	2.310e-07	5.566e-15	0.14	0.02	0.15		0.25	8.95	9.21
  END	3.892e-13			0.13		0.13		0.25		0.25
-	converged				SUM --&gt;	0.95			SUM --&gt;	55.91
+	converged				SUM --&gt;	0.94			SUM --&gt;	55.91
 
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.00
    1	3.245e-02	2.274e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   2	1.458e-03	9.862e-15	0.13	0.05	0.18		0.25	8.95	9.21
+   2	1.458e-03	9.862e-15	0.13	0.02	0.15		0.25	8.95	9.21
    3	7.164e-05	7.412e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   4	6.334e-08	9.376e-15	0.13	0.02	0.15		0.25	8.95	9.21
- END	2.869e-14			0.14		0.14		0.25		0.25
-	converged				SUM --&gt;	0.77			SUM --&gt;	37.07
+   4	6.334e-08	9.376e-15	0.13	0.04	0.18		0.25	8.95	9.21
+ END	2.869e-14			0.13		0.13		0.25		0.25
+	converged				SUM --&gt;	0.76			SUM --&gt;	37.07
 
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.00
-   1	1.786e-02	6.185e-15	0.13	0.02	0.15		0.25	8.95	9.21
+   1	1.786e-02	6.185e-15	0.14	0.02	0.15		0.25	8.95	9.21
    2	3.921e-03	9.064e-16	0.13	0.02	0.15		0.25	8.95	9.21
-   3	1.217e-03	1.539e-14	0.13	0.04	0.18		0.25	8.95	9.21
-   4	6.732e-05	1.251e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   5	1.421e-08	2.104e-15	0.13	0.02	0.15		0.25	8.95	9.21
- END	1.772e-14			0.14		0.14		0.25		0.25
+   3	1.217e-03	1.539e-14	0.13	0.02	0.15		0.25	8.95	9.21
+   4	6.732e-05	1.251e-15	0.14	0.02	0.16		0.25	8.95	9.21
+   5	1.421e-08	2.104e-15	0.13	0.03	0.17		0.25	8.95	9.21
+ END	1.772e-14			0.13		0.13		0.25		0.25
 	converged				SUM --&gt;	0.91			SUM --&gt;	46.28
 
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.00
-   1	1.054e-02	9.034e-13	0.13	0.02	0.15		0.25	8.95	9.21
+   1	1.054e-02	9.034e-13	0.14	0.02	0.15		0.25	8.95	9.21
    2	6.836e-03	2.922e-14	0.13	0.02	0.15		0.25	8.95	9.21
-   3	8.329e-03	2.711e-15	0.13	0.03	0.17		0.25	8.95	9.21
-   4	3.568e-03	9.870e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   5	1.214e-04	3.894e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   6	1.100e-06	6.392e-15	0.14	0.02	0.15		0.25	8.95	9.21
-   7	1.935e-10	5.671e-15	0.13	0.02	0.15		0.25	8.95	9.21
+   3	8.329e-03	2.711e-15	0.13	0.02	0.15		0.25	8.95	9.21
+   4	3.568e-03	9.870e-15	0.14	0.02	0.15		0.25	8.95	9.21
+   5	1.214e-04	3.894e-15	0.13	0.03	0.17		0.25	8.95	9.21
+   6	1.100e-06	6.392e-15	0.13	0.02	0.15		0.25	8.95	9.21
+   7	1.935e-10	5.671e-15	0.14	0.02	0.15		0.25	8.95	9.21
  END	5.672e-15			0.13		0.13		0.25		0.25
-	converged				SUM --&gt;	1.20			SUM --&gt;	64.69
+	converged				SUM --&gt;	1.21			SUM --&gt;	64.69
 
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.00
-   1	2.733e-03	5.062e-15	0.13	0.02	0.16		0.25	8.95	9.21
-   2	2.381e-04	4.224e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   3	1.212e-05	2.939e-15	0.13	0.02	0.15		0.25	8.95	9.21
-   4	1.415e-08	1.401e-15	0.14	0.02	0.15		0.25	8.95	9.21
- END	7.495e-15			0.13		0.13		0.25		0.25
-	converged				SUM --&gt;	0.74			SUM --&gt;	37.07
-</code></pre><p><img src="../../images/Example250_NSELidDrivenCavity_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example245_NSEFlowAroundCylinder/">« 245 : Flow around a cylinder</a><a class="docs-footer-nextpage" href="../Example252_NSEPlanarLatticeFlow/">252 : Navier–Stokes Planar Lattice Flow »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:09">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+   1	2.733e-03	5.062e-15	0.13	0.02	0.15		0.25	8.95	9.21
+   2	2.381e-04	4.224e-15	0.14	0.02	0.15		0.25	8.95	9.21
+   3	1.212e-05	2.939e-15	0.13	0.03	0.16		0.25	8.95	9.21
+   4	1.415e-08	1.401e-15	0.13	0.02	0.15		0.25	8.95	9.21
+ END	7.495e-15			0.14		0.14		0.25		0.25
+	converged				SUM --&gt;	0.75			SUM --&gt;	37.07
+</code></pre><p><img src="../../images/Example250_NSELidDrivenCavity_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example245_NSEFlowAroundCylinder/">« 245 : Flow around a cylinder</a><a class="docs-footer-nextpage" href="../Example252_NSEPlanarLatticeFlow/">252 : Navier–Stokes Planar Lattice Flow »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:33">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

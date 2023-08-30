@@ -9,153 +9,153 @@ using ExtendableGrids
 
 # exact solution u for the Poisson problem
 function u!(result, qpinfo)
-    x = qpinfo.x
-    r2 = x[1]^2 + x[2]^2
-    φ = atan(x[2], x[1])
-    if φ &lt; 0
-        φ += 2*pi
-    end
-    result[1] = r2^(1/3) * sin(2*φ/3)
+	x = qpinfo.x
+	r2 = x[1]^2 + x[2]^2
+	φ = atan(x[2], x[1])
+	if φ &lt; 0
+		φ += 2 * pi
+	end
+	result[1] = r2^(1 / 3) * sin(2 * φ / 3)
 end
 
 # gradient of exact solution
 function ∇u!(result, qpinfo)
-    x = qpinfo.x
-    φ = atan(x[2], x[1])
-    r2 = x[1]^2 + x[2]^2
-    if φ &lt; 0
-        φ += 2*pi
-    end
-    ∂r = 2/3*r2^(-1/6) * sin(2*φ/3)
-    ∂φ = 2/3*r2^(-1/6) * cos(2*φ/3)
-    result[1] = cos(φ) * ∂r - sin(φ) * ∂φ
-    result[2] = sin(φ) * ∂r + cos(φ) * ∂φ
+	x = qpinfo.x
+	φ = atan(x[2], x[1])
+	r2 = x[1]^2 + x[2]^2
+	if φ &lt; 0
+		φ += 2 * pi
+	end
+	∂r = 2 / 3 * r2^(-1 / 6) * sin(2 * φ / 3)
+	∂φ = 2 / 3 * r2^(-1 / 6) * cos(2 * φ / 3)
+	result[1] = cos(φ) * ∂r - sin(φ) * ∂φ
+	result[2] = sin(φ) * ∂r + cos(φ) * ∂φ
 end
 
 # kernel for exact error calculation
 function exact_error!(result, u, qpinfo)
-    u!(result, qpinfo)
-    ∇u!(view(result,2:3), qpinfo)
-    result .-= u
-    result .= result.^2
+	u!(result, qpinfo)
+	∇u!(view(result, 2:3), qpinfo)
+	result .-= u
+	result .= result .^ 2
 end
 
 # kernel for face interpolation of normal jumps of gradient
 function gradnormalflux!(result, ∇u, qpinfo)
-    item = qpinfo.item
-    normal = view(qpinfo.params,:,item)
-    result[1] = dot(∇u, normal)
+	item = qpinfo.item
+	normal = view(qpinfo.params, :, item)
+	result[1] = dot(∇u, normal)
 end
 
 # kernel for face refinement indicator
 function η_face!(result, gradjump, qpinfo)
-    result .= qpinfo.volume * gradjump.^2
+	result .= qpinfo.volume * gradjump .^ 2
 end
 
 # kernel for cell refinement indicator
 function η_cell!(result, Δu, qpinfo)
-    result .= qpinfo.volume * Δu.^2
+	result .= qpinfo.volume * Δu .^ 2
 end
 
 function main(; maxdofs = 4000, θ = 0.5, μ = 1.0, nrefs = 1, order = 2, Plotter = nothing, kwargs...)
 
-    # problem description
-    PD = ProblemDescription()
-    u = Unknown(&quot;u&quot;; name = &quot;u&quot;)
-    assign_unknown!(PD, u)
-    assign_operator!(PD, BilinearOperator([grad(u)]; factor = μ, kwargs...))
-    assign_operator!(PD, InterpolateBoundaryData(u, u!; regions = 2:7, bonus_quadorder = 4, kwargs...))
-    assign_operator!(PD, HomogeneousBoundaryData(u; regions = [1,8]))
+	# problem description
+	PD = ProblemDescription()
+	u = Unknown(&quot;u&quot;; name = &quot;u&quot;)
+	assign_unknown!(PD, u)
+	assign_operator!(PD, BilinearOperator([grad(u)]; factor = μ, kwargs...))
+	assign_operator!(PD, InterpolateBoundaryData(u, u!; regions = 2:7, bonus_quadorder = 4, kwargs...))
+	assign_operator!(PD, HomogeneousBoundaryData(u; regions = [1, 8]))
 
-    # discretize
-    xgrid = uniform_refine(grid_lshape(Triangle2D), nrefs)
+	# discretize
+	xgrid = uniform_refine(grid_lshape(Triangle2D), nrefs)
 
-    # define item integrators for estimation and error calculation
-    ErrorIntegratorFace = ItemIntegrator(η_face!, [id(1)]; quadorder = 2*order, entities = ON_IFACES, kwargs...)
-    ErrorIntegratorCell = ItemIntegrator(η_cell!, [Δ(1)]; quadorder = 2*(order-2), entities = ON_CELLS, kwargs...)
-    ErrorIntegratorExact = ItemIntegrator(exact_error!, [id(1), grad(1)]; quadorder = 2*order, kwargs...)
+	# define item integrators for estimation and error calculation
+	ErrorIntegratorFace = ItemIntegrator(η_face!, [id(1)]; quadorder = 2 * order, entities = ON_IFACES, kwargs...)
+	ErrorIntegratorCell = ItemIntegrator(η_cell!, [Δ(1)]; quadorder = 2 * (order - 2), entities = ON_CELLS, kwargs...)
+	ErrorIntegratorExact = ItemIntegrator(exact_error!, [id(1), grad(1)]; quadorder = 2 * order, kwargs...)
 
-    NDofs = zeros(Int, 0)
-    ResultsL2 = zeros(Float64, 0)
-    ResultsH1 = zeros(Float64, 0)
-    Resultsη = zeros(Float64, 0)
-    sol = nothing
-    ndofs = 0
-    level = 0
-    while ndofs &lt; maxdofs
-        level += 1
+	NDofs = zeros(Int, 0)
+	ResultsL2 = zeros(Float64, 0)
+	ResultsH1 = zeros(Float64, 0)
+	Resultsη = zeros(Float64, 0)
+	sol = nothing
+	ndofs = 0
+	level = 0
+	while ndofs &lt; maxdofs
+		level += 1
 
-        # SOLVE : create a solution vector and solve the problem
-        println(&quot;------- LEVEL $level&quot;)
+		# SOLVE : create a solution vector and solve the problem
+		println(&quot;------- LEVEL $level&quot;)
 		if ndofs &lt; 1000
 			println(stdout, unicode_gridplot(xgrid))
 		end
-        @time begin
-            # solve
-            FES = FESpace{H1Pk{1, 2, order}}(xgrid)
-            sol = ExtendableFEM.solve(PD, [FES]; u = [u], kwargs...)
-            ndofs = length(sol[1])
-            push!(NDofs, ndofs)
-            println(&quot;\t ndof =  $ndofs&quot;)
-            print(&quot;@time  solver =&quot;)
-        end
+		@time begin
+			# solve
+			FES = FESpace{H1Pk{1, 2, order}}(xgrid)
+			sol = ExtendableFEM.solve(PD, [FES]; u = [u], kwargs...)
+			ndofs = length(sol[1])
+			push!(NDofs, ndofs)
+			println(&quot;\t ndof =  $ndofs&quot;)
+			print(&quot;@time  solver =&quot;)
+		end
 
-        # ESTIMATE : calculate local error estimator contributions
-        @time begin
-            # calculate error estimator
-            JumpInterpolator = FaceInterpolator(gradnormalflux!, [jump(grad(u))]; resultdim = 1, order = order - 1, params = xgrid[FaceNormals], kwargs...)
-            η_F = evaluate(ErrorIntegratorFace, evaluate!(JumpInterpolator, sol))
-            η_F[xgrid[BFaceFaces]] .= 0
+		# ESTIMATE : calculate local error estimator contributions
+		@time begin
+			# calculate error estimator
+			JumpInterpolator = FaceInterpolator(gradnormalflux!, [jump(grad(u))]; resultdim = 1, order = order - 1, params = xgrid[FaceNormals], kwargs...)
+			η_F = evaluate(ErrorIntegratorFace, evaluate!(JumpInterpolator, sol))
+			η_F[xgrid[BFaceFaces]] .= 0
 
-            η_T = evaluate(ErrorIntegratorCell, sol)
-            facecells = xgrid[FaceCells]
-            for face = 1 : size(facecells,2)
-                η_F[face] += η_T[facecells[1,face]]
-                if facecells[2,face] &gt; 0
-                    η_F[face] += η_T[facecells[2,face]]
-                end
-            end
+			η_T = evaluate(ErrorIntegratorCell, sol)
+			facecells = xgrid[FaceCells]
+			for face ∈ 1:size(facecells, 2)
+				η_F[face] += η_T[facecells[1, face]]
+				if facecells[2, face] &gt; 0
+					η_F[face] += η_T[facecells[2, face]]
+				end
+			end
 
-            # calculate total estimator
-            push!(Resultsη, sqrt(sum(η_F)))
-            print(&quot;@time  η eval =&quot;)
-        end
+			# calculate total estimator
+			push!(Resultsη, sqrt(sum(η_F)))
+			print(&quot;@time  η eval =&quot;)
+		end
 
-        # calculate exact L2 error, H1 error
-        @time begin
-            error = evaluate(ErrorIntegratorExact, sol)
-            push!(ResultsL2, sqrt(sum(view(error,1,:))))
-            push!(ResultsH1, sqrt(sum(view(error,2,:)) + sum(view(error,3,:))))
-            print(&quot;@time  e eval =&quot;)
-        end
+		# calculate exact L2 error, H1 error
+		@time begin
+			error = evaluate(ErrorIntegratorExact, sol)
+			push!(ResultsL2, sqrt(sum(view(error, 1, :))))
+			push!(ResultsH1, sqrt(sum(view(error, 2, :)) + sum(view(error, 3, :))))
+			print(&quot;@time  e eval =&quot;)
+		end
 
-        if ndofs &gt;= maxdofs
-            break;
-        end
+		if ndofs &gt;= maxdofs
+			break
+		end
 
-        # MARK+REFINE : mesh refinement
-        @time begin
-            if θ &gt;= 1 ## uniform mesh refinement
-                xgrid = uniform_refine(xgrid)
-            else ## adaptive mesh refinement
-                # refine by red-green-blue refinement (incl. closuring)
-                facemarker = bulk_mark(xgrid, view(η_F,:), θ; indicator_AT = ON_FACES)
-                xgrid = RGB_refine(xgrid, facemarker)
-            end
-            print(&quot;@time  refine =&quot;)
-        end
-        println(&quot;\t    η =  $(Resultsη[level])\n\t    e =  $(ResultsH1[level])&quot;)
-    end
+		# MARK+REFINE : mesh refinement
+		@time begin
+			if θ &gt;= 1 ## uniform mesh refinement
+				xgrid = uniform_refine(xgrid)
+			else ## adaptive mesh refinement
+				# refine by red-green-blue refinement (incl. closuring)
+				facemarker = bulk_mark(xgrid, view(η_F, :), θ; indicator_AT = ON_FACES)
+				xgrid = RGB_refine(xgrid, facemarker)
+			end
+			print(&quot;@time  refine =&quot;)
+		end
+		println(&quot;\t    η =  $(Resultsη[level])\n\t    e =  $(ResultsH1[level])&quot;)
+	end
 
-    # plot
-    p=GridVisualizer(; Plotter = Plotter, layout = (2,2), clear = true, size = (1000,1000))
-    scalarplot!(p[1,1], xgrid, nodevalues_view(sol[u])[1], levels = 7, title = &quot;u_h&quot;)
-    plot_convergencehistory!(p[1,2], NDofs, [ResultsL2 ResultsH1 Resultsη]; add_h_powers = [order,order+1], X_to_h = X -&gt; order*X.^(-1/2), ylabels = [&quot;|| u - u_h ||&quot;, &quot;|| ∇(u - u_h) ||&quot;, &quot;η&quot;])
-    gridplot!(p[2,1], xgrid; linewidth = 1)
-    gridplot!(p[2,2], xgrid; linewidth = 1, xlimits = [-0.0001,0.0001], ylimits = [-0.0001,0.0001])
+	# plot
+	p = GridVisualizer(; Plotter = Plotter, layout = (2, 2), clear = true, size = (1000, 1000))
+	scalarplot!(p[1, 1], xgrid, nodevalues_view(sol[u])[1], levels = 7, title = &quot;u_h&quot;)
+	plot_convergencehistory!(p[1, 2], NDofs, [ResultsL2 ResultsH1 Resultsη]; add_h_powers = [order, order + 1], X_to_h = X -&gt; order * X .^ (-1 / 2), ylabels = [&quot;|| u - u_h ||&quot;, &quot;|| ∇(u - u_h) ||&quot;, &quot;η&quot;])
+	gridplot!(p[2, 1], xgrid; linewidth = 1)
+	gridplot!(p[2, 2], xgrid; linewidth = 1, xlimits = [-0.0001, 0.0001], ylimits = [-0.0001, 0.0001])
 
-    # print convergence history
-    print_convergencehistory(NDofs, [ResultsL2 ResultsH1 Resultsη]; X_to_h = X -&gt; X.^(-1/2), ylabels = [&quot;|| u - u_h ||&quot;, &quot;|| ∇(u - u_h) ||&quot;, &quot;η&quot;])
+	# print convergence history
+	print_convergencehistory(NDofs, [ResultsL2 ResultsH1 Resultsη]; X_to_h = X -&gt; X .^ (-1 / 2), ylabels = [&quot;|| u - u_h ||&quot;, &quot;|| ∇(u - u_h) ||&quot;, &quot;η&quot;])
 end
 
 end # module</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><p><strong>Default output:</strong></p><pre><code class="nohighlight hljs">julia&gt; Example210_LshapeAdaptivePoissonProblem.main()
@@ -190,10 +190,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.25
 
 	 ndof =  65
-@time  solver =  0.002242 seconds (1.76 k allocations: 291.758 KiB)
-@time  η eval =  0.000971 seconds (1.34 k allocations: 83.539 KiB)
-@time  e eval =  0.000458 seconds (475 allocations: 32.078 KiB)
-@time  refine =  0.000045 seconds (61 allocations: 7.969 KiB)
+@time  solver =  0.002028 seconds (1.77 k allocations: 294.172 KiB)
+@time  η eval =  0.000898 seconds (1.34 k allocations: 83.539 KiB)
+@time  e eval =  0.000492 seconds (475 allocations: 32.078 KiB)
+@time  refine =  0.000044 seconds (61 allocations: 7.969 KiB)
 	    η =  1.0136544491990602
 	    e =  0.12088162458820484
 ------- LEVEL 2
@@ -224,12 +224,12 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.02
  END	---------	2.268e-15	0.00	0.00	0.00		0.11	0.14	0.24
-	finished				SUM --&gt;	0.00			SUM --&gt;	0.26
+	finished				SUM --&gt;	0.00			SUM --&gt;	0.27
 
 	 ndof =  85
-@time  solver =  0.001640 seconds (1.76 k allocations: 306.938 KiB)
-@time  η eval =  0.000791 seconds (1.54 k allocations: 96.336 KiB)
-@time  e eval =  0.000521 seconds (473 allocations: 32.141 KiB)
+@time  solver =  0.001600 seconds (1.77 k allocations: 309.352 KiB)
+@time  η eval =  0.000776 seconds (1.54 k allocations: 96.336 KiB)
+@time  e eval =  0.000513 seconds (473 allocations: 32.141 KiB)
 @time  refine =  0.000039 seconds (62 allocations: 11.750 KiB)
 	    η =  0.6070065806022737
 	    e =  0.07212627945120852
@@ -259,15 +259,15 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
     └────────────────────────────────────────┘ 
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
- INI							0.00				0.02
+ INI							0.00				0.03
  END	---------	2.563e-15	0.00	0.00	0.00		0.11	0.18	0.29
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.32
 
 	 ndof =  111
-@time  solver =  0.001598 seconds (1.78 k allocations: 360.141 KiB)
-@time  η eval =  0.000881 seconds (1.78 k allocations: 109.398 KiB)
-@time  e eval =  0.000631 seconds (473 allocations: 32.406 KiB)
-@time  refine =  0.000039 seconds (64 allocations: 13.219 KiB)
+@time  solver =  0.001663 seconds (1.78 k allocations: 362.555 KiB)
+@time  η eval =  0.000818 seconds (1.78 k allocations: 109.398 KiB)
+@time  e eval =  0.000627 seconds (473 allocations: 32.406 KiB)
+@time  refine =  0.000038 seconds (64 allocations: 13.219 KiB)
 	    η =  0.40677133325934156
 	    e =  0.0482293571503376
 ------- LEVEL 4
@@ -301,10 +301,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.39
 
 	 ndof =  137
-@time  solver =  0.001759 seconds (1.79 k allocations: 439.062 KiB)
-@time  η eval =  0.000916 seconds (2.03 k allocations: 122.258 KiB)
-@time  e eval =  0.000761 seconds (473 allocations: 32.719 KiB)
-@time  refine =  0.000060 seconds (68 allocations: 18.234 KiB)
+@time  solver =  0.001784 seconds (1.80 k allocations: 441.477 KiB)
+@time  η eval =  0.000886 seconds (2.03 k allocations: 122.258 KiB)
+@time  e eval =  0.000727 seconds (473 allocations: 32.719 KiB)
+@time  refine =  0.000055 seconds (68 allocations: 18.234 KiB)
 	    η =  0.2921985504768297
 	    e =  0.03448375985345018
 ------- LEVEL 5
@@ -338,10 +338,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.45
 
 	 ndof =  163
-@time  solver =  0.001903 seconds (1.81 k allocations: 502.859 KiB)
-@time  η eval =  0.000973 seconds (2.28 k allocations: 137.820 KiB)
-@time  e eval =  0.000895 seconds (473 allocations: 33.031 KiB)
-@time  refine =  0.000052 seconds (70 allocations: 19.781 KiB)
+@time  solver =  0.001934 seconds (1.82 k allocations: 505.273 KiB)
+@time  η eval =  0.000936 seconds (2.28 k allocations: 137.820 KiB)
+@time  e eval =  0.000857 seconds (473 allocations: 33.031 KiB)
+@time  refine =  0.000047 seconds (70 allocations: 19.781 KiB)
 	    η =  0.2318262809680798
 	    e =  0.027182306884589353
 ------- LEVEL 6
@@ -375,10 +375,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.57
 
 	 ndof =  225
-@time  solver =  0.002319 seconds (1.83 k allocations: 631.180 KiB)
-@time  η eval =  0.001213 seconds (2.88 k allocations: 168.820 KiB)
-@time  e eval =  0.001162 seconds (473 allocations: 33.766 KiB)
-@time  refine =  0.000069 seconds (72 allocations: 23.031 KiB)
+@time  solver =  0.002327 seconds (1.83 k allocations: 633.594 KiB)
+@time  η eval =  0.001141 seconds (2.88 k allocations: 168.820 KiB)
+@time  e eval =  0.001145 seconds (473 allocations: 33.766 KiB)
+@time  refine =  0.000058 seconds (72 allocations: 23.031 KiB)
 	    η =  0.16521774252356994
 	    e =  0.02013144451368136
 ------- LEVEL 7
@@ -412,10 +412,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.86
 
 	 ndof =  315
-@time  solver =  0.002945 seconds (1.85 k allocations: 933.086 KiB)
-@time  η eval =  0.001452 seconds (3.77 k allocations: 225.117 KiB)
-@time  e eval =  0.001606 seconds (473 allocations: 34.766 KiB)
-@time  refine =  0.000088 seconds (75 allocations: 39.156 KiB)
+@time  solver =  0.002931 seconds (1.86 k allocations: 935.500 KiB)
+@time  η eval =  0.001409 seconds (3.77 k allocations: 225.117 KiB)
+@time  e eval =  0.001591 seconds (473 allocations: 34.766 KiB)
+@time  refine =  0.000075 seconds (75 allocations: 39.156 KiB)
 	    η =  0.11628117656103873
 	    e =  0.01424333452296225
 ------- LEVEL 8
@@ -446,13 +446,13 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.05
  END	---------	5.607e-15	0.00	0.00	0.00		0.39	0.71	1.10
-	finished				SUM --&gt;	0.00			SUM --&gt;	1.14
+	finished				SUM --&gt;	0.00			SUM --&gt;	1.15
 
 	 ndof =  451
-@time  solver =  0.003863 seconds (1.88 k allocations: 1.200 MiB)
-@time  η eval =  0.002019 seconds (5.29 k allocations: 311.586 KiB)
-@time  e eval =  0.002253 seconds (473 allocations: 36.328 KiB)
-@time  refine =  0.000109 seconds (75 allocations: 53.375 KiB)
+@time  solver =  0.003936 seconds (1.89 k allocations: 1.203 MiB)
+@time  η eval =  0.001991 seconds (5.29 k allocations: 311.586 KiB)
+@time  e eval =  0.002214 seconds (473 allocations: 36.328 KiB)
+@time  refine =  0.000095 seconds (75 allocations: 53.375 KiB)
 	    η =  0.08247990319840433
 	    e =  0.009890770104296608
 ------- LEVEL 9
@@ -486,10 +486,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	1.67
 
 	 ndof =  666
-@time  solver =  0.005314 seconds (2.20 k allocations: 1.752 MiB)
-@time  η eval =  0.002661 seconds (7.65 k allocations: 430.805 KiB)
-@time  e eval =  0.003232 seconds (475 allocations: 39.422 KiB)
-@time  refine =  0.000141 seconds (87 allocations: 65.562 KiB)
+@time  solver =  0.005361 seconds (2.21 k allocations: 1.754 MiB)
+@time  η eval =  0.002641 seconds (7.65 k allocations: 430.805 KiB)
+@time  e eval =  0.003204 seconds (475 allocations: 39.422 KiB)
+@time  refine =  0.000128 seconds (87 allocations: 65.562 KiB)
 	    η =  0.057172241179725726
 	    e =  0.006812212792947163
 ------- LEVEL 10
@@ -523,10 +523,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.01			SUM --&gt;	2.54
 
 	 ndof =  1007
-@time  solver =  0.007557 seconds (2.40 k allocations: 2.632 MiB)
-@time  η eval =  0.003688 seconds (12.32 k allocations: 645.633 KiB)
-@time  e eval =  0.004891 seconds (473 allocations: 42.641 KiB)
-@time  refine =  0.000211 seconds (95 allocations: 127.891 KiB)
+@time  solver =  0.007626 seconds (2.41 k allocations: 2.635 MiB)
+@time  η eval =  0.003615 seconds (12.32 k allocations: 645.633 KiB)
+@time  e eval =  0.004834 seconds (473 allocations: 42.641 KiB)
+@time  refine =  0.000185 seconds (95 allocations: 127.891 KiB)
 	    η =  0.0381871224836708
 	    e =  0.004524743867373229
 ------- LEVEL 11
@@ -534,54 +534,54 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.12
  END	---------	1.046e-14	0.01	0.01	0.01		1.30	2.36	3.66
-	finished				SUM --&gt;	0.01			SUM --&gt;	3.77
+	finished				SUM --&gt;	0.01			SUM --&gt;	3.78
 
 	 ndof =  1549
-@time  solver =  0.011082 seconds (2.67 k allocations: 3.926 MiB)
-@time  η eval =  0.005335 seconds (20.66 k allocations: 982.148 KiB)
-@time  e eval =  0.007426 seconds (475 allocations: 48.828 KiB)
-@time  refine =  0.000288 seconds (109 allocations: 156.094 KiB)
+@time  solver =  0.010943 seconds (2.67 k allocations: 3.928 MiB)
+@time  η eval =  0.005271 seconds (20.66 k allocations: 982.148 KiB)
+@time  e eval =  0.007382 seconds (475 allocations: 48.828 KiB)
+@time  refine =  0.000282 seconds (109 allocations: 156.094 KiB)
 	    η =  0.025276908432074842
 	    e =  0.002998068228097714
 ------- LEVEL 12
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.17
- END	---------	1.229e-14	0.01	0.04	0.05		1.32	3.44	4.76
-	finished				SUM --&gt;	0.05			SUM --&gt;	4.92
+ END	---------	1.229e-14	0.03	0.01	0.04		1.32	3.44	4.76
+	finished				SUM --&gt;	0.04			SUM --&gt;	4.93
 
 	 ndof =  2295
-@time  solver =  0.050475 seconds (2.96 k allocations: 5.107 MiB, 66.49% gc time)
-@time  η eval =  0.008188 seconds (32.33 k allocations: 1.426 MiB)
-@time  e eval =  0.011080 seconds (475 allocations: 57.516 KiB)
-@time  refine =  0.000454 seconds (104 allocations: 228.047 KiB)
+@time  solver =  0.043026 seconds (2.97 k allocations: 5.110 MiB, 60.73% gc time)
+@time  η eval =  0.007954 seconds (32.33 k allocations: 1.426 MiB)
+@time  e eval =  0.010934 seconds (475 allocations: 57.516 KiB)
+@time  refine =  0.000416 seconds (104 allocations: 228.047 KiB)
 	    η =  0.01709211530104225
 	    e =  0.0020104230857149736
 ------- LEVEL 13
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
- INI							0.00				0.24
+ INI							0.00				0.25
  END	---------	1.560e-14	0.01	0.01	0.02		1.97	5.29	7.26
 	finished				SUM --&gt;	0.02			SUM --&gt;	7.51
 
 	 ndof =  3497
-@time  solver =  0.025105 seconds (3.64 k allocations: 7.811 MiB)
-@time  η eval =  0.011628 seconds (51.02 k allocations: 2.171 MiB)
-@time  e eval =  0.016650 seconds (475 allocations: 71.328 KiB)
-@time  refine =  0.000624 seconds (127 allocations: 357.109 KiB)
+@time  solver =  0.024932 seconds (3.65 k allocations: 7.813 MiB)
+@time  η eval =  0.011535 seconds (51.02 k allocations: 2.171 MiB)
+@time  e eval =  0.016602 seconds (475 allocations: 71.328 KiB)
+@time  refine =  0.000588 seconds (127 allocations: 357.109 KiB)
 	    η =  0.011328829368444024
 	    e =  0.001318771126224443
 ------- LEVEL 14
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.36
- END	---------	1.921e-14	0.02	0.02	0.04		2.72	7.41	10.13
+ END	---------	1.921e-14	0.02	0.02	0.03		2.72	7.41	10.13
 	finished				SUM --&gt;	0.04			SUM --&gt;	10.49
 
 	 ndof =  5242
-@time  solver =  0.036769 seconds (4.51 k allocations: 10.866 MiB)
-@time  η eval =  0.017125 seconds (78.17 k allocations: 3.282 MiB)
-@time  e eval =  0.024867 seconds (475 allocations: 91.453 KiB)
+@time  solver =  0.036596 seconds (4.52 k allocations: 10.868 MiB)
+@time  η eval =  0.016579 seconds (78.17 k allocations: 3.282 MiB)
+@time  e eval =  0.024821 seconds (475 allocations: 91.453 KiB)
 
     ndofs   |   || u - u_h ||    order | || ∇(u - u_h) ||   order |         η          order |
 ============|==========================|==========================|==========================|
@@ -598,4 +598,4 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
       1549  |     3.177e-05      3.99  |     2.998e-03      1.91  |     2.528e-02      1.92  |
       2295  |     2.082e-05      2.15  |     2.010e-03      2.03  |     1.709e-02      1.99  |
       3497  |     1.068e-05      3.17  |     1.319e-03      2.00  |     1.133e-02      1.95  |
-      5242  |     5.317e-06      3.45  |     8.757e-04      2.02  |     7.565e-03      1.99  |</code></pre><p><img src="../../images/Example210_LshapeAdaptivePoissonProblem_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example205_HeatEquation/">« 205 : Heat equation</a><a class="docs-footer-nextpage" href="../Example220_ReactionConvectionDiffusion/">220 : Reaction-Convection-Diffusion-Problem »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:09">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+      5242  |     5.317e-06      3.45  |     8.757e-04      2.02  |     7.565e-03      1.99  |</code></pre><p><img src="../../images/Example210_LshapeAdaptivePoissonProblem_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example205_HeatEquation/">« 205 : Heat equation</a><a class="docs-footer-nextpage" href="../Example220_ReactionConvectionDiffusion/">220 : Reaction-Convection-Diffusion-Problem »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:33">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

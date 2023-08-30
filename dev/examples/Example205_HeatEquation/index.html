@@ -11,62 +11,62 @@ using GridVisualize
 
 # initial state u at time t0
 function initial_data!(result, qpinfo)
-    x = qpinfo.x
-    result[1] = exp(-5*x[1]^2 - 5*x[2]^2)
+	x = qpinfo.x
+	result[1] = exp(-5 * x[1]^2 - 5 * x[2]^2)
 end
 
 function main(; nrefs = 4, T = 2.0, τ = 1e-2, order = 2, use_diffeq = true,
-    solver = Rosenbrock23(), Plotter = nothing, kwargs...)
+	solver = Rosenbrock23(), Plotter = nothing, kwargs...)
 
-    # problem description
-    PD = ProblemDescription(&quot;Heat Equation&quot;)
-    u = Unknown(&quot;u&quot;; name = &quot;temperature&quot;)
-    assign_unknown!(PD, u)
-    assign_operator!(PD, BilinearOperator([grad(u)]; store = true, kwargs...))
-    assign_operator!(PD, HomogeneousBoundaryData(u; regions = 1:4))
+	# problem description
+	PD = ProblemDescription(&quot;Heat Equation&quot;)
+	u = Unknown(&quot;u&quot;; name = &quot;temperature&quot;)
+	assign_unknown!(PD, u)
+	assign_operator!(PD, BilinearOperator([grad(u)]; store = true, kwargs...))
+	assign_operator!(PD, HomogeneousBoundaryData(u; regions = 1:4))
 
-    # grid
-    xgrid = uniform_refine(grid_unitsquare(Triangle2D; scale = [4,4], shift = [-0.5,-0.5]), nrefs)
+	# grid
+	xgrid = uniform_refine(grid_unitsquare(Triangle2D; scale = [4, 4], shift = [-0.5, -0.5]), nrefs)
 
-    # prepare solution vector and initial data u0
-    FES = FESpace{H1Pk{1,2,order}}(xgrid)
-    sol = FEVector(FES; tags = PD.unknowns)
-    interpolate!(sol[u],  initial_data!; bonus_quadorder = 5)
-    SC = SolverConfiguration(PD, [FES]; init = sol, maxiterations = 1, constant_matrix = true, kwargs...)
+	# prepare solution vector and initial data u0
+	FES = FESpace{H1Pk{1, 2, order}}(xgrid)
+	sol = FEVector(FES; tags = PD.unknowns)
+	interpolate!(sol[u], initial_data!; bonus_quadorder = 5)
+	SC = SolverConfiguration(PD, [FES]; init = sol, maxiterations = 1, constant_matrix = true, kwargs...)
 
-    # init plotter and plot u0
-    p = GridVisualizer(; Plotter = Plotter, layout = (1,2), clear = true, size = (800,400))
-    scalarplot!(p[1,1], xgrid, nodevalues_view(sol[u])[1], levels = 7, title = &quot;u_h (t = 0)&quot;)
+	# init plotter and plot u0
+	p = GridVisualizer(; Plotter = Plotter, layout = (1, 2), clear = true, size = (800, 400))
+	scalarplot!(p[1, 1], xgrid, nodevalues_view(sol[u])[1], levels = 7, title = &quot;u_h (t = 0)&quot;)
 
-    # generate mass matrix
-    M = FEMatrix(FES)
-    assemble!(M, BilinearOperator([id(1)]))
+	# generate mass matrix
+	M = FEMatrix(FES)
+	assemble!(M, BilinearOperator([id(1)]))
 
-    if (use_diffeq)
-        # generate DifferentialEquations.ODEProblem
-        prob = ExtendableFEM.generate_ODEProblem(SC, (0.0, T); mass_matrix = M.entries.cscmatrix)
+	if (use_diffeq)
+		# generate DifferentialEquations.ODEProblem
+		prob = ExtendableFEM.generate_ODEProblem(SC, (0.0, T); mass_matrix = M.entries.cscmatrix)
 
-        # solve ODE problem
-        de_sol = DifferentialEquations.solve(prob, solver, abstol=1e-6, reltol=1e-3, dt = τ, dtmin = 1e-6, adaptive = true, initializealg=DifferentialEquations.NoInit())
-        @info &quot;#tsteps = $(length(de_sol))&quot;
+		# solve ODE problem
+		de_sol = DifferentialEquations.solve(prob, solver, abstol = 1e-6, reltol = 1e-3, dt = τ, dtmin = 1e-6, adaptive = true, initializealg = DifferentialEquations.NoInit())
+		@info &quot;#tsteps = $(length(de_sol))&quot;
 
-        # get final solution
-        sol.entries .= de_sol[end]
-    else
-        # add backward Euler time derivative
-        assign_operator!(PD, BilinearOperator(M, [u]; factor = 1/τ, kwargs...))
-        assign_operator!(PD, LinearOperator(M, [u], [u]; factor = 1/τ, kwargs...))
+		# get final solution
+		sol.entries .= de_sol[end]
+	else
+		# add backward Euler time derivative
+		assign_operator!(PD, BilinearOperator(M, [u]; factor = 1 / τ, kwargs...))
+		assign_operator!(PD, LinearOperator(M, [u], [u]; factor = 1 / τ, kwargs...))
 
-        # iterate tspan
-        t = 0
-        for it = 1 : Int(floor(T/τ))
-            t += τ
-            ExtendableFEM.solve(PD, [FES], SC; time = t)
-        end
-    end
+		# iterate tspan
+		t = 0
+		for it ∈ 1:Int(floor(T / τ))
+			t += τ
+			ExtendableFEM.solve(PD, [FES], SC; time = t)
+		end
+	end
 
-    # plot final state
-    scalarplot!(p[1,2], xgrid, nodevalues_view(sol[u])[1], levels = 7, title = &quot;u_h (t = $T)&quot;)
+	# plot final state
+	scalarplot!(p[1, 2], xgrid, nodevalues_view(sol[u])[1], levels = 7, title = &quot;u_h (t = $T)&quot;)
 end
 
-end # module</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><p><strong>Default output:</strong></p><pre><code class="nohighlight hljs">julia&gt; Example205_HeatEquation.main()</code></pre><p><img src="../../images/Example205_HeatEquation_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example202_MixedPoissonProblem/">« 202 : Poisson-Problem (Mixed)</a><a class="docs-footer-nextpage" href="../Example210_LshapeAdaptivePoissonProblem/">210 : Poisson L-shape Adaptive Mesh Refinement »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:09">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end # module</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><p><strong>Default output:</strong></p><pre><code class="nohighlight hljs">julia&gt; Example205_HeatEquation.main()</code></pre><p><img src="../../images/Example205_HeatEquation_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example202_MixedPoissonProblem/">« 202 : Poisson-Problem (Mixed)</a><a class="docs-footer-nextpage" href="../Example210_LshapeAdaptivePoissonProblem/">210 : Poisson L-shape Adaptive Mesh Refinement »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:33">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

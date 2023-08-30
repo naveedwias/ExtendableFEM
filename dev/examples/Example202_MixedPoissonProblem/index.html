@@ -12,65 +12,65 @@ using ExtendableGrids
 
 const μ = 0.25          # coefficient for laplacian!
 function blf!(result, u_ops, qpinfo)
-    σ, divσ, u = view(u_ops, 1:2), view(u_ops, 3), view(u_ops, 4)
-    result[1] = σ[1]/μ
-    result[2] = σ[2]/μ
-    result[3] = -u[1]
-    result[4] = divσ[1]
-    return nothing
+	σ, divσ, u = view(u_ops, 1:2), view(u_ops, 3), view(u_ops, 4)
+	result[1] = σ[1] / μ
+	result[2] = σ[2] / μ
+	result[3] = -u[1]
+	result[4] = divσ[1]
+	return nothing
 end
 
 function f!(fval, qpinfo)
-    fval[1] = qpinfo.x[1] * qpinfo.x[2]
-    return nothing
+	fval[1] = qpinfo.x[1] * qpinfo.x[2]
+	return nothing
 end
 
 # boundary data
 function boundarydata!(result, qpinfo)
-    result[1] = 0
-    return nothing
+	result[1] = 0
+	return nothing
 end
 
 function main(; nrefs = 5, Plotter = nothing, hdivdg = false, kwargs...)
 
-    # problem description
-    PD = ProblemDescription()
-    σ = Unknown(&quot;σ&quot;; name = &quot;pseudostress&quot;)
-    u = Unknown(&quot;u&quot;; name = &quot;potential&quot;)
-    p = Unknown(&quot;p&quot;; name = &quot;LM hdiv continuity&quot;) # only_used if hdivdg == true
-    assign_unknown!(PD, u)
-    assign_unknown!(PD, σ)
-    if hdivdg
-        assign_unknown!(PD, p)
-        assign_operator!(PD, BilinearOperator([jump(normalflux(σ))], [id(p)]; transposed_copy = 1, entities = ON_IFACES, kwargs...))
-        assign_operator!(PD, HomogeneousData(p; regions = 1:4))
-    end
-    assign_operator!(PD, BilinearOperator(blf!, [id(σ), div(σ), id(u)]; kwargs...))
-    assign_operator!(PD, LinearOperator(boundarydata!, [normalflux(σ)]; entities = ON_BFACES, regions = 1:4, kwargs...))
-    assign_operator!(PD, LinearOperator(f!, [id(u)]; kwargs...))
-    assign_operator!(PD, FixDofs(u; dofs = [1], vals = [0]))
-    @info PD
+	# problem description
+	PD = ProblemDescription()
+	σ = Unknown(&quot;σ&quot;; name = &quot;pseudostress&quot;)
+	u = Unknown(&quot;u&quot;; name = &quot;potential&quot;)
+	p = Unknown(&quot;p&quot;; name = &quot;LM hdiv continuity&quot;) # only_used if hdivdg == true
+	assign_unknown!(PD, u)
+	assign_unknown!(PD, σ)
+	if hdivdg
+		assign_unknown!(PD, p)
+		assign_operator!(PD, BilinearOperator([jump(normalflux(σ))], [id(p)]; transposed_copy = 1, entities = ON_IFACES, kwargs...))
+		assign_operator!(PD, HomogeneousData(p; regions = 1:4))
+	end
+	assign_operator!(PD, BilinearOperator(blf!, [id(σ), div(σ), id(u)]; kwargs...))
+	assign_operator!(PD, LinearOperator(boundarydata!, [normalflux(σ)]; entities = ON_BFACES, regions = 1:4, kwargs...))
+	assign_operator!(PD, LinearOperator(f!, [id(u)]; kwargs...))
+	assign_operator!(PD, FixDofs(u; dofs = [1], vals = [0]))
+	@info PD
 
-    # discretize
-    xgrid = uniform_refine(grid_unitsquare_mixedgeometries(), nrefs)
-    FES = Dict(u =&gt; FESpace{L2P0{1}}(xgrid),
-               σ =&gt; FESpace{HDIVRT0{2}}(xgrid; broken = hdivdg),
-               p =&gt; hdivdg ? FESpace{L2P0{1}, ON_FACES}(xgrid) : nothing)
+	# discretize
+	xgrid = uniform_refine(grid_unitsquare_mixedgeometries(), nrefs)
+	FES = Dict(u =&gt; FESpace{L2P0{1}}(xgrid),
+		σ =&gt; FESpace{HDIVRT0{2}}(xgrid; broken = hdivdg),
+		p =&gt; hdivdg ? FESpace{L2P0{1}, ON_FACES}(xgrid) : nothing)
 
-    # solve
-    sol = ExtendableFEM.solve(PD, FES; kwargs...)
+	# solve
+	sol = ExtendableFEM.solve(PD, FES; kwargs...)
 
-    # plot
-    p=GridVisualizer(; Plotter = Plotter, layout = (1,2), clear = true, size = (1000,500))
-    xgrid_plot = split_grid_into(xgrid, Triangle2D)
-    scalarplot!(p[1,1], xgrid_plot, nodevalues(sol[u])[:]; Plotter = Plotter, title = &quot;u&quot;)
-    scalarplot!(p[1,2], xgrid_plot, nodevalues(sol[σ]; abs = true)[:]; Plotter = Plotter, title = &quot;|σ|&quot;)
+	# plot
+	p = GridVisualizer(; Plotter = Plotter, layout = (1, 2), clear = true, size = (1000, 500))
+	xgrid_plot = split_grid_into(xgrid, Triangle2D)
+	scalarplot!(p[1, 1], xgrid_plot, nodevalues(sol[u])[:]; Plotter = Plotter, title = &quot;u&quot;)
+	scalarplot!(p[1, 2], xgrid_plot, nodevalues(sol[σ]; abs = true)[:]; Plotter = Plotter, title = &quot;|σ|&quot;)
 end
 
 end # module</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><p><strong>Default output:</strong></p><pre><code class="nohighlight hljs">julia&gt; Example202_MixedPoissonProblem.main()
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.01				1.13
- END	---------	1.192e-13	0.04	0.11	0.16		7.56	32.99	40.55
-	finished				SUM --&gt;	0.17			SUM --&gt;	41.68
-</code></pre><p><img src="../../images/Example202_MixedPoissonProblem_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example201_PoissonProblem/">« 201 : Poisson-Problem</a><a class="docs-footer-nextpage" href="../Example205_HeatEquation/">205 : Heat equation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:09">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ END	---------	1.192e-13	0.04	0.11	0.15		7.56	32.99	40.55
+	finished				SUM --&gt;	0.16			SUM --&gt;	41.68
+</code></pre><p><img src="../../images/Example202_MixedPoissonProblem_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example201_PoissonProblem/">« 201 : Poisson-Problem</a><a class="docs-footer-nextpage" href="../Example205_HeatEquation/">205 : Heat equation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:33">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
