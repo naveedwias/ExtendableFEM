@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>210 : Poisson L-shape Adaptive Mesh Refinement · ExtendableFEM.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">ExtendableFEM.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../package_index/">Index</a></li><li><span class="tocitem">Problem Description</span><ul><li><a class="tocitem" href="../../problemdescription/">Problem Description</a></li><li><a class="tocitem" href="../../nonlinearoperator/">NonlinearOperator</a></li><li><a class="tocitem" href="../../bilinearoperator/">BilinearOperator</a></li><li><a class="tocitem" href="../../linearoperator/">LinearOperator</a></li><li><a class="tocitem" href="../../interpolateboundarydata/">InterpolateBoundaryData</a></li><li><a class="tocitem" href="../../homogeneousdata/">HomogeneousData</a></li><li><a class="tocitem" href="../../fixdofs/">FixDofs</a></li><li><a class="tocitem" href="../../combinedofs/">CombineDofs</a></li><li><a class="tocitem" href="../../callbackoperator/">CallbackOperator</a></li></ul></li><li><span class="tocitem">Solving</span><ul><li><a class="tocitem" href="../../pdesolvers/">Solvers</a></li></ul></li><li><span class="tocitem">Postprocessing</span><ul><li><a class="tocitem" href="../../postprocessing/">Other packages</a></li><li><a class="tocitem" href="../../itemintegrators/">Item Integrators</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples_intro/">About the examples</a></li><li><a class="tocitem" href="../Example103_BurgersEquation/">103 : Burger&#39;s Equation</a></li><li><a class="tocitem" href="../Example105_NonlinearPoissonEquation/">105 : Nonlinear Poisson Equation</a></li><li><a class="tocitem" href="../Example106_NonlinearDiffusion/">106 : Nonlinear Diffusion</a></li><li><a class="tocitem" href="../Example108_RobinBoundaryCondition/">108 : Robin Boundary Condition</a></li><li><a class="tocitem" href="../Example201_PoissonProblem/">201 : Poisson-Problem</a></li><li><a class="tocitem" href="../Example202_MixedPoissonProblem/">202 : Poisson-Problem (Mixed)</a></li><li><a class="tocitem" href="../Example205_HeatEquation/">205 : Heat equation</a></li><li class="is-active"><a class="tocitem" href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li><li><a class="tocitem" href="../Example220_ReactionConvectionDiffusion/">220 : Reaction-Convection-Diffusion-Problem</a></li><li><a class="tocitem" href="../Example225_ObstacleProblem/">225 : Obstacle Problem</a></li><li><a class="tocitem" href="../Example230_NonlinearElasticity/">230 : Nonlinear Elasticity</a></li><li><a class="tocitem" href="../Example235_StokesIteratedPenalty/">235 : Stokes iterated penalty method</a></li><li><a class="tocitem" href="../Example240_SVRTEnrichment/">240 : Stokes <span>$RT$</span> enrichment</a></li><li><a class="tocitem" href="../Example245_NSEFlowAroundCylinder/">245 : Flow around a cylinder</a></li><li><a class="tocitem" href="../Example250_NSELidDrivenCavity/">250 : Navier–Stokes Lid-driven cavity</a></li><li><a class="tocitem" href="../Example252_NSEPlanarLatticeFlow/">252 : Navier–Stokes Planar Lattice Flow</a></li><li><a class="tocitem" href="../Example260_AxisymmetricNavierStokesProblem/">260 : Axisymmetric Stokes</a></li><li><a class="tocitem" href="../Example265_FlowTransport/">265 : Flow + Transport</a></li><li><a class="tocitem" href="../Example270_NaturalConvectionProblem/">270 : Natural convection</a></li><li><a class="tocitem" href="../Example280_CompressibleStokes/">240 : Compressible Stokes 2D</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="github.com/chmerdon/ExtendableFEM.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id=":-Poisson-L-shape-Adaptive-Mesh-Refinement"><a class="docs-heading-anchor" href="#:-Poisson-L-shape-Adaptive-Mesh-Refinement">210 : Poisson L-shape Adaptive Mesh Refinement</a><a id=":-Poisson-L-shape-Adaptive-Mesh-Refinement-1"></a><a class="docs-heading-anchor-permalink" href="#:-Poisson-L-shape-Adaptive-Mesh-Refinement" title="Permalink"></a></h1><p>(<a href="https://github.com/chmerdon/ExtendableFEM.jl/raw/master/examples/Example210_LshapeAdaptivePoissonProblem.jl">source code</a>)</p><p>This example computes the standard-residual error estimator for the <span>$H^1$</span> error <span>$e = u - u_h$</span> of some <span>$H^1$</span>-conforming approximation <span>$u_h$</span> to the solution <span>$u$</span> of some Poisson problem <span>$-\Delta u = f$</span> on an L-shaped domain, i.e.</p><p class="math-container">\[\eta^2(u_h) := \sum_{T \in \mathcal{T}} \lvert T \rvert \| f + \Delta u_h \|^2_{L^2(T)}
++ \sum_{F \in \mathcal{F}} \lvert F \rvert \| [[\nabla u_h \cdot \mathbf{n}]] \|^2_{L^2(F)}\]</p><p>This example script showcases the evaluation of 2nd order derivatives like the Laplacian and adaptive mesh refinement.</p><pre><code class="language-julia hljs">module Example210_LshapeAdaptivePoissonProblem
+
+using ExtendableFEM
+using ExtendableFEMBase
+using GridVisualize
+using ExtendableGrids
+
+# exact solution u for the Poisson problem
+function u!(result, qpinfo)
+    x = qpinfo.x
+    r2 = x[1]^2 + x[2]^2
+    φ = atan(x[2], x[1])
+    if φ &lt; 0
+        φ += 2*pi
+    end
+    result[1] = r2^(1/3) * sin(2*φ/3)
+end
+
+# gradient of exact solution
+function ∇u!(result, qpinfo)
+    x = qpinfo.x
+    φ = atan(x[2], x[1])
+    r2 = x[1]^2 + x[2]^2
+    if φ &lt; 0
+        φ += 2*pi
+    end
+    ∂r = 2/3*r2^(-1/6) * sin(2*φ/3)
+    ∂φ = 2/3*r2^(-1/6) * cos(2*φ/3)
+    result[1] = cos(φ) * ∂r - sin(φ) * ∂φ
+    result[2] = sin(φ) * ∂r + cos(φ) * ∂φ
+end
+
+# kernel for exact error calculation
+function exact_error!(result, u, qpinfo)
+    u!(result, qpinfo)
+    ∇u!(view(result,2:3), qpinfo)
+    result .-= u
+    result .= result.^2
+end
+
+# kernel for face interpolation of normal jumps of gradient
+function gradnormalflux!(result, ∇u, qpinfo)
+    item = qpinfo.item
+    normal = view(qpinfo.params,:,item)
+    result[1] = dot(∇u, normal)
+end
+
+# kernel for face refinement indicator
+function η_face!(result, gradjump, qpinfo)
+    result .= qpinfo.volume * gradjump.^2
+end
+
+# kernel for cell refinement indicator
+function η_cell!(result, Δu, qpinfo)
+    result .= qpinfo.volume * Δu.^2
+end
+
+function main(; maxdofs = 4000, θ = 0.5, μ = 1.0, nrefs = 1, order = 2, Plotter = nothing, kwargs...)
+
+    # problem description
+    PD = ProblemDescription()
+    u = Unknown(&quot;u&quot;; name = &quot;u&quot;)
+    assign_unknown!(PD, u)
+    assign_operator!(PD, BilinearOperator([grad(u)]; factor = μ, kwargs...))
+    assign_operator!(PD, InterpolateBoundaryData(u, u!; regions = 2:7, bonus_quadorder = 4, kwargs...))
+    assign_operator!(PD, HomogeneousBoundaryData(u; regions = [1,8]))
+
+    # discretize
+    xgrid = uniform_refine(grid_lshape(Triangle2D), nrefs)
+
+    # define item integrators for estimation and error calculation
+    ErrorIntegratorFace = ItemIntegrator(η_face!, [id(1)]; quadorder = 2*order, entities = ON_IFACES, kwargs...)
+    ErrorIntegratorCell = ItemIntegrator(η_cell!, [Δ(1)]; quadorder = 2*(order-2), entities = ON_CELLS, kwargs...)
+    ErrorIntegratorExact = ItemIntegrator(exact_error!, [id(1), grad(1)]; quadorder = 2*order, kwargs...)
+
+    NDofs = zeros(Int, 0)
+    ResultsL2 = zeros(Float64, 0)
+    ResultsH1 = zeros(Float64, 0)
+    Resultsη = zeros(Float64, 0)
+    sol = nothing
+    ndofs = 0
+    level = 0
+    while ndofs &lt; maxdofs
+        level += 1
+
+        # SOLVE : create a solution vector and solve the problem
+        println(&quot;------- LEVEL $level&quot;)
+		if ndofs &lt; 1000
+			println(stdout, unicode_gridplot(xgrid))
+		end
+        @time begin
+            # solve
+            FES = FESpace{H1Pk{1, 2, order}}(xgrid)
+            sol = ExtendableFEM.solve(PD, [FES]; u = [u], kwargs...)
+            ndofs = length(sol[1])
+            push!(NDofs, ndofs)
+            println(&quot;\t ndof =  $ndofs&quot;)
+            print(&quot;@time  solver =&quot;)
+        end
+
+        # ESTIMATE : calculate local error estimator contributions
+        @time begin
+            # calculate error estimator
+            JumpInterpolator = FaceInterpolator(gradnormalflux!, [jump(grad(u))]; resultdim = 1, order = order - 1, params = xgrid[FaceNormals], kwargs...)
+            η_F = evaluate(ErrorIntegratorFace, evaluate!(JumpInterpolator, sol))
+            η_F[xgrid[BFaceFaces]] .= 0
+
+            η_T = evaluate(ErrorIntegratorCell, sol)
+            facecells = xgrid[FaceCells]
+            for face = 1 : size(facecells,2)
+                η_F[face] += η_T[facecells[1,face]]
+                if facecells[2,face] &gt; 0
+                    η_F[face] += η_T[facecells[2,face]]
+                end
+            end
+
+            # calculate total estimator
+            push!(Resultsη, sqrt(sum(η_F)))
+            print(&quot;@time  η eval =&quot;)
+        end
+
+        # calculate exact L2 error, H1 error
+        @time begin
+            error = evaluate(ErrorIntegratorExact, sol)
+            push!(ResultsL2, sqrt(sum(view(error,1,:))))
+            push!(ResultsH1, sqrt(sum(view(error,2,:)) + sum(view(error,3,:))))
+            print(&quot;@time  e eval =&quot;)
+        end
+
+        if ndofs &gt;= maxdofs
+            break;
+        end
+
+        # MARK+REFINE : mesh refinement
+        @time begin
+            if θ &gt;= 1 ## uniform mesh refinement
+                xgrid = uniform_refine(xgrid)
+            else ## adaptive mesh refinement
+                # refine by red-green-blue refinement (incl. closuring)
+                facemarker = bulk_mark(xgrid, view(η_F,:), θ; indicator_AT = ON_FACES)
+                xgrid = RGB_refine(xgrid, facemarker)
+            end
+            print(&quot;@time  refine =&quot;)
+        end
+        println(&quot;\t    η =  $(Resultsη[level])\n\t    e =  $(ResultsH1[level])&quot;)
+    end
+
+    # plot
+    p=GridVisualizer(; Plotter = Plotter, layout = (2,2), clear = true, size = (1000,1000))
+    scalarplot!(p[1,1], xgrid, nodevalues_view(sol[u])[1], levels = 7, title = &quot;u_h&quot;)
+    plot_convergencehistory!(p[1,2], NDofs, [ResultsL2 ResultsH1 Resultsη]; add_h_powers = [order,order+1], X_to_h = X -&gt; order*X.^(-1/2), ylabels = [&quot;|| u - u_h ||&quot;, &quot;|| ∇(u - u_h) ||&quot;, &quot;η&quot;])
+    gridplot!(p[2,1], xgrid; linewidth = 1)
+    gridplot!(p[2,2], xgrid; linewidth = 1, xlimits = [-0.0001,0.0001], ylimits = [-0.0001,0.0001])
+
+    # print convergence history
+    print_convergencehistory(NDofs, [ResultsL2 ResultsH1 Resultsη]; X_to_h = X -&gt; X.^(-1/2), ylabels = [&quot;|| u - u_h ||&quot;, &quot;|| ∇(u - u_h) ||&quot;, &quot;η&quot;])
+end
+
+end # module</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><p><strong>Default output:</strong></p><pre><code class="nohighlight hljs">julia&gt; Example210_LshapeAdaptivePoissonProblem.main()
+------- LEVEL 1
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.02
+ END	---------	1.988e-15	0.00	0.00	0.00		0.10	0.13	0.23
+	finished				SUM --&gt;	0.00			SUM --&gt;	0.25
+
+	 ndof =  65
+@time  solver =  0.002242 seconds (1.76 k allocations: 291.758 KiB)
+@time  η eval =  0.000971 seconds (1.34 k allocations: 83.539 KiB)
+@time  e eval =  0.000458 seconds (475 allocations: 32.078 KiB)
+@time  refine =  0.000045 seconds (61 allocations: 7.969 KiB)
+	    η =  1.0136544491990602
+	    e =  0.12088162458820484
+------- LEVEL 2
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢑⡴⠥⠤⠤⢤⡧⠤⠤⠤⢵⢔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⡇⠀⢀⠔⠁⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⣇⠔⠁⠀⠀⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⢑⢗⠁⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.02
+ END	---------	2.268e-15	0.00	0.00	0.00		0.11	0.14	0.24
+	finished				SUM --&gt;	0.00			SUM --&gt;	0.26
+
+	 ndof =  85
+@time  solver =  0.001640 seconds (1.76 k allocations: 306.938 KiB)
+@time  η eval =  0.000791 seconds (1.54 k allocations: 96.336 KiB)
+@time  e eval =  0.000521 seconds (473 allocations: 32.141 KiB)
+@time  refine =  0.000039 seconds (62 allocations: 11.750 KiB)
+	    η =  0.6070065806022737
+	    e =  0.07212627945120852
+------- LEVEL 3
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢑⣴⠥⠤⠤⢤⣧⠤⠤⠤⢵⣔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣇⣑⣄⠔⠁⡇⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⣇⠔⢹⡠⠊⣇⠔⠁⠑⢄⡇⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⡟⢍⢹⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⡇⢀⠝⢅⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⢑⢷⠥⠤⠤⠵⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.02
+ END	---------	2.563e-15	0.00	0.00	0.00		0.11	0.18	0.29
+	finished				SUM --&gt;	0.00			SUM --&gt;	0.32
+
+	 ndof =  111
+@time  solver =  0.001598 seconds (1.78 k allocations: 360.141 KiB)
+@time  η eval =  0.000881 seconds (1.78 k allocations: 109.398 KiB)
+@time  e eval =  0.000631 seconds (473 allocations: 32.406 KiB)
+@time  refine =  0.000039 seconds (64 allocations: 13.219 KiB)
+	    η =  0.40677133325934156
+	    e =  0.0482293571503376
+------- LEVEL 4
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢑⣴⠥⠤⠤⢤⣧⠤⠤⠤⢵⣔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣇⣑⣄⠔⠁⡇⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⣇⠔⢹⣵⡻⣿⠾⣹⠑⢄⡇⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⡟⢍⢹⣻⡟⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⡇⢀⠝⢗⠚⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⢑⢷⠥⠤⠤⠵⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.03
+ END	---------	2.963e-15	0.00	0.00	0.00		0.15	0.21	0.36
+	finished				SUM --&gt;	0.00			SUM --&gt;	0.39
+
+	 ndof =  137
+@time  solver =  0.001759 seconds (1.79 k allocations: 439.062 KiB)
+@time  η eval =  0.000916 seconds (2.03 k allocations: 122.258 KiB)
+@time  e eval =  0.000761 seconds (473 allocations: 32.719 KiB)
+@time  refine =  0.000060 seconds (68 allocations: 18.234 KiB)
+	    η =  0.2921985504768297
+	    e =  0.03448375985345018
+------- LEVEL 5
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢑⣴⠥⠤⠤⢤⣧⠤⠤⠤⢵⣔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣇⣑⣄⠔⠁⡇⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⣇⠔⢹⣵⣿⣿⡾⣹⠑⢄⡇⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⡟⢍⢹⣻⡿⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⡇⢀⠝⢗⠚⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⢑⢷⠥⠤⠤⠵⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠀⠀⠑⢄⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.03
+ END	---------	2.913e-15	0.00	0.00	0.00		0.15	0.27	0.42
+	finished				SUM --&gt;	0.00			SUM --&gt;	0.45
+
+	 ndof =  163
+@time  solver =  0.001903 seconds (1.81 k allocations: 502.859 KiB)
+@time  η eval =  0.000973 seconds (2.28 k allocations: 137.820 KiB)
+@time  e eval =  0.000895 seconds (473 allocations: 33.031 KiB)
+@time  refine =  0.000052 seconds (70 allocations: 19.781 KiB)
+	    η =  0.2318262809680798
+	    e =  0.027182306884589353
+------- LEVEL 6
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢑⣔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⡇⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⡇⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡏⠉⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⢽│ 
+    │⡇⠀⠀⠀⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⢸│ 
+    │⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⡇⠀⠀⠀⢑⣴⠥⠤⠤⢤⣧⠤⠤⠤⢵⣷⠥⠤⠤⠤⡧⠤⠤⠤⢵⢔⠁⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣇⣑⣄⠔⠁⡇⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠀⠀⣇⠔⠁⠀⠀⣇⠔⢹⣵⣿⣿⡾⣹⠑⢄⡇⠀⠀⠑⢄⣇⠔⠁⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⡟⢍⢹⣻⡿⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⡇⢀⠝⢗⠚⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⢑⢴⠥⠤⠤⠤⣧⠤⠤⠤⢵⣷⠥⠤⠤⠵⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠑⢄⠔⠁⡇⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⣇⠔⠁⠑⢄⡇⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⢑⢗⠁⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⣇⣔⣁⣀⣀⣀⣀⣀⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.03
+ END	---------	2.868e-15	0.00	0.00	0.00		0.17	0.37	0.54
+	finished				SUM --&gt;	0.00			SUM --&gt;	0.57
+
+	 ndof =  225
+@time  solver =  0.002319 seconds (1.83 k allocations: 631.180 KiB)
+@time  η eval =  0.001213 seconds (2.88 k allocations: 168.820 KiB)
+@time  e eval =  0.001162 seconds (473 allocations: 33.766 KiB)
+@time  refine =  0.000069 seconds (72 allocations: 23.031 KiB)
+	    η =  0.16521774252356994
+	    e =  0.02013144451368136
+------- LEVEL 7
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⠉⢹│ 
+    │⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⠀⠀⠀⢸│ 
+    │⡇⠀⠀⠀⢑⡴⠥⠤⠤⢤⡧⠤⠤⠤⢵⣔⠁⠀⠀⠀⡇⠀⠀⠀⢑⣔⠁⠀⠀⠀⡇⠀⠀⠀⠑⢄⠀⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⡇⠀⢀⠔⠁⡇⠀⢀⠔⠁⡇⠑⢄⠀⠀⡇⠀⢀⠔⠁⡇⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⣇⠔⠁⠀⠀⣇⠔⠁⠀⠀⡇⠀⠀⠑⢄⣇⠔⠁⠀⠀⡇⠀⠀⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⠉⢉⠝⡏⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⢽│ 
+    │⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⢀⢵⢅⠀⡇⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⢸│ 
+    │⡇⠀⠀⠀⢑⢷⠥⠤⠤⠤⡧⠤⠤⠤⢵⣷⠥⠤⠤⢤⣷⠥⢼⡤⣵⣷⠥⠤⠤⢤⡧⠤⠤⠤⢵⢔⠁⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣇⣑⣼⣞⣣⣇⣑⣄⠔⠁⡇⠀⢀⠔⠁⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⣇⠔⠁⠀⠀⣇⠔⢹⣵⣿⣿⡾⣹⠑⢄⣇⠔⠁⠑⢄⣇⠔⠁⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⢉⠝⡟⢍⢹⣻⡿⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⢀⠕⢗⠒⡗⢒⢿⢗⠚⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⢑⢴⠥⠤⠤⠤⣷⠥⠤⠤⢵⣷⠥⢼⠤⢵⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠑⢄⠔⠁⡇⠑⢼⠔⠁⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⣇⠔⠁⠑⢄⣇⠔⠁⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⠉⠉⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⠀⠀⠀⠀⠀⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠑⢄⠀⠀⠀⠀⡇⠀⠀⠀⢑⢗⠁⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⠀⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣀⣀⣀⣀⣀⣀⣀⣑⣄⣇⣔⣁⣀⣀⣀⣀⣀⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.04
+ END	---------	5.500e-15	0.00	0.00	0.00		0.30	0.53	0.82
+	finished				SUM --&gt;	0.00			SUM --&gt;	0.86
+
+	 ndof =  315
+@time  solver =  0.002945 seconds (1.85 k allocations: 933.086 KiB)
+@time  η eval =  0.001452 seconds (3.77 k allocations: 225.117 KiB)
+@time  e eval =  0.001606 seconds (473 allocations: 34.766 KiB)
+@time  refine =  0.000088 seconds (75 allocations: 39.156 KiB)
+	    η =  0.11628117656103873
+	    e =  0.01424333452296225
+------- LEVEL 8
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⢽│ 
+    │⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⢸│ 
+    │⡇⠀⠀⠀⢑⡴⠥⠤⠤⢤⡧⠤⠤⠤⢵⣴⠥⠤⠤⢤⡧⠤⠤⠤⢵⣔⠁⠀⠀⠀⡇⠀⠀⠀⢑⢔⠁⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⡇⠀⢀⠔⠁⡇⠀⢀⠔⠁⡇⠑⢄⠔⠁⡇⠀⢀⠔⠁⡇⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⣇⠔⠁⠀⠀⣇⠔⠁⠀⠀⣇⠔⢹⠑⢄⣇⠔⠁⠀⠀⡇⠀⠀⠑⢄⣇⠔⠁⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⠉⠉⠉⡟⢍⢹⢉⠝⡟⢍⠉⢉⠝⡏⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⢽│ 
+    │⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⠀⠑⢄⠀⡇⢀⢽⢅⠀⡇⢀⢵⢅⠀⡇⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⢸│ 
+    │⡇⠀⠀⠀⢑⣷⠥⠤⠤⢤⣧⠤⠤⠤⢵⣷⠥⢼⡤⣵⣷⢥⣼⡤⣵⣷⠥⠤⠤⢤⡧⠤⠤⠤⢵⢔⠁⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣇⣑⣄⣔⣁⣇⣑⣼⣞⣣⣷⣟⣼⣞⣣⣇⣑⣄⠔⠁⡇⠀⢀⠔⠁⠀⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⣇⠔⠁⠑⢄⣇⠔⠁⠑⢄⣯⠾⣹⣵⣿⣿⣿⣿⣷⢏⣇⠔⠁⠑⢄⣇⠔⠁⠀⠀⠀⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⠉⢉⠝⣟⣽⢿⣿⣿⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⢀⠕⢗⠒⡟⢒⢿⢿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⢑⢷⠥⠤⠤⠤⣷⠥⠤⠤⢵⣷⠥⢼⠯⢵⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠑⢄⠔⠁⡇⠑⢼⠔⠁⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⠔⠁⠀⠀⠀⠀⠀⠑⢄⣇⠔⠁⠑⢄⣇⠔⠁⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⢑⢔⠁⠀⠀⠀⡇⠀⠀⠀⢑⢗⠁⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣔⣁⣀⣀⣀⣀⣀⣑⣄⣇⣔⣁⣀⣀⣀⣀⣀⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.05
+ END	---------	5.607e-15	0.00	0.00	0.00		0.39	0.71	1.10
+	finished				SUM --&gt;	0.00			SUM --&gt;	1.14
+
+	 ndof =  451
+@time  solver =  0.003863 seconds (1.88 k allocations: 1.200 MiB)
+@time  η eval =  0.002019 seconds (5.29 k allocations: 311.586 KiB)
+@time  e eval =  0.002253 seconds (473 allocations: 36.328 KiB)
+@time  refine =  0.000109 seconds (75 allocations: 53.375 KiB)
+	    η =  0.08247990319840433
+	    e =  0.009890770104296608
+------- LEVEL 9
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⠉⠉⡟⢍⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⢽│ 
+    │⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⠀⠑⢄⠀⡇⢀⢵⢅⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⢸│ 
+    │⡇⠀⠀⠀⢑⡴⠥⠤⠤⢤⡧⠤⠤⠤⢵⣴⠥⠤⠤⢤⡧⠤⠤⠤⢵⣗⠁⢸⠀⢑⡧⠤⠤⠤⢵⣔⠁⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⡇⠀⢀⠔⠁⡇⠀⢀⠔⠁⡇⠑⢄⠔⠁⡇⠀⢀⠔⠁⡇⠑⢼⠔⠁⡇⠀⢀⠔⠁⡇⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⣇⠔⠁⠀⠀⣇⠔⠁⠀⠀⣇⠔⢹⠑⢄⣇⠔⠁⠀⠀⣇⠔⢹⠑⢄⣇⠔⠁⠀⠀⡇⠀⠀⠑⢼│ 
+    │⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⠉⢉⠝⡟⢍⢹⢉⠝⡟⢍⠉⢉⠝⡏⡩⢻⢉⠝⡟⢍⠉⢉⠝⡏⠉⠉⢉⢽│ 
+    │⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⢀⠕⢅⠀⡇⢀⢽⢗⠒⡗⢒⢷⢗⠒⡟⢒⢾⠓⡲⡗⢒⠗⢅⠀⡇⢀⠔⠁⢸│ 
+    │⡇⠀⠀⠀⢑⣷⠥⠤⠤⢤⣷⠥⠤⠤⢵⣷⠥⢼⡤⣵⣷⢥⣼⡤⣵⣷⠥⢼⠮⢤⣷⠥⠤⠤⢵⢷⠥⠤⠤⢼│ 
+    │⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣇⣑⣄⣔⣁⣇⣑⣼⣾⣣⣷⣟⣼⣞⣣⣇⣑⣼⠔⠁⡇⠑⢄⣔⣁⣀⣑⣄⠔⢹│ 
+    │⣇⠔⠁⠀⠀⣇⠔⠁⠑⢄⣇⠔⢹⠑⢄⣯⠾⣻⣿⣿⣿⣿⣿⣷⢏⣯⠾⣹⠑⢄⣇⠔⠁⠑⢄⢀⠔⠁⠑⢼│ 
+    │⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⢹⢉⠝⣟⣽⢿⣿⣿⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⢀⠝⢗⠒⡟⢒⢿⢿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣧⠤⠤⠤⢵⣷⠥⠤⠤⠤⣷⠥⠤⠤⢵⣷⠥⢼⠯⢵⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠑⢄⠔⠁⡇⠑⢄⠀⠀⡇⠑⢄⠔⠁⡇⠑⢼⠔⠁⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⠔⠁⠑⢄⡇⠀⠀⠑⢄⣇⠔⠁⠑⢄⣇⠔⠁⠑⢄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⠉⠉⠉⡟⢍⠉⢉⠝⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⠀⠑⢄⠀⡇⢀⢵⢅⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠀⠀⢑⢷⠥⠤⠤⠤⡧⠤⠤⠤⢵⣗⠁⢸⠀⢑⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⢀⠔⠁⠀⠑⢄⠀⠀⡇⠀⢀⠔⠁⡇⠑⢼⠔⠁⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣔⣁⣀⣀⣀⣀⣀⣑⣄⣇⣔⣁⣀⣀⣇⣔⣁⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.06
+ END	---------	5.847e-15	0.00	0.00	0.00		0.55	1.06	1.61
+	finished				SUM --&gt;	0.00			SUM --&gt;	1.67
+
+	 ndof =  666
+@time  solver =  0.005314 seconds (2.20 k allocations: 1.752 MiB)
+@time  η eval =  0.002661 seconds (7.65 k allocations: 430.805 KiB)
+@time  e eval =  0.003232 seconds (475 allocations: 39.422 KiB)
+@time  refine =  0.000141 seconds (87 allocations: 65.562 KiB)
+	    η =  0.057172241179725726
+	    e =  0.006812212792947163
+------- LEVEL 10
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀gridplot⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+    ┌────────────────────────────────────────┐ 
+    │⡟⢍⠉⠉⠉⠉⠉⠉⢉⠝⡟⢍⠉⢉⠝⡏⠉⠉⢉⠝⡟⢍⠉⠉⠉⡟⢍⠉⢉⠝⡟⢍⠉⠉⠉⠉⠉⠉⢉⢽│ 
+    │⡇⠀⠑⢄⠀⠀⢀⠔⠁⠀⡇⢀⢵⢅⠀⡇⢀⠔⠁⠀⡇⠀⠑⢄⠀⡇⢀⢵⢅⠀⡇⠀⠑⢄⠀⠀⢀⠔⠁⢸│ 
+    │⡇⠀⠀⠀⢑⣴⠥⠤⠤⢤⡷⠥⣼⠤⢵⣷⠥⠤⠤⢤⣧⠤⠤⠤⢵⣗⠁⢸⠀⢑⡧⠤⠤⠤⢵⣔⠁⠀⠀⢸│ 
+    │⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣧⣊⣸⠔⠁⡇⠑⢄⠔⠁⡇⠑⢄⣔⣁⣇⣑⣼⠔⠁⡇⠀⢀⠔⠁⡇⠑⢄⠀⢸│ 
+    │⣇⠔⠁⠀⠀⣇⠔⢹⡠⠊⣇⠔⢹⠑⢄⣇⠔⢹⠑⢄⣇⠔⢹⡠⠊⣇⠔⢹⠑⢄⣇⠔⠁⠀⠀⡇⠀⠀⠑⢼│ 
+    │⡟⢍⠉⢉⠝⡏⡩⢻⢉⠝⡟⢍⢹⢉⠝⣟⣽⢻⢉⠝⣟⣽⢻⢉⠝⡏⡩⢻⢉⠝⡟⢍⠉⢉⠝⡏⠉⠉⢉⢽│ 
+    │⡇⢀⠕⢗⠒⡟⢒⠞⢗⠒⡗⢒⢿⢗⡶⡯⣧⣿⣗⡶⡟⢒⢿⢗⠒⡟⢒⢾⠓⡲⡗⢒⠗⢅⠀⡇⢀⠔⠁⢸│ 
+    │⡷⠥⠤⠤⢵⣷⠥⠤⠤⢵⣷⢥⡼⡯⣵⣿⣷⣽⡯⣵⣷⢥⣼⡤⣵⣷⠥⢼⠮⢤⣷⠥⠤⠤⢵⢷⠥⠤⠤⢼│ 
+    │⡇⠀⢀⠔⠁⡇⠑⢄⣔⣁⣷⣛⣭⣿⣝⣿⣟⣽⣿⣫⣿⣟⣼⣞⣣⣇⣑⣼⠔⠁⡇⠑⢄⣔⣁⣀⣑⣄⠔⢹│ 
+    │⣇⠔⠁⠀⠀⣇⠔⠁⠑⢄⣇⠔⢹⡽⢏⣯⡿⣻⣿⣿⣿⣿⣿⣷⢏⣯⠾⣹⠑⢄⣇⠔⠁⠑⢄⢀⠔⠁⠑⢼│ 
+    │⡟⢍⠉⠉⠉⡟⢍⠉⢉⠝⣟⣽⢻⣫⡿⣿⣿⢿⣿⣿⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉│ 
+    │⡇⠀⠑⢄⠀⡇⢀⢵⠓⡲⡯⣧⣟⣗⣾⣿⣷⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣧⠤⠤⠤⢵⣷⠥⢼⡮⠤⣿⢭⣶⠯⢵⣿⣷⣽⡯⣵⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠑⢄⠔⠁⡇⠑⢼⣈⣢⣷⣛⣼⣔⣁⡷⡟⣼⢾⢣⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⠔⠁⠑⢄⣇⠔⠁⠑⢄⣇⠔⢹⠑⢄⣯⠿⣓⡿⢏⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡟⢍⠉⠉⠉⡏⠉⠉⢉⠝⡟⢍⢹⠫⡉⡟⢍⢹⢉⠝⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠀⠑⢄⠀⡇⢀⠔⠁⠀⡇⢀⠝⢖⠚⡗⢒⢿⢅⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣧⠤⠤⠤⢵⣷⠥⠤⠤⠤⡷⠥⠤⠤⢵⣗⠁⢸⠀⢑⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⡇⠑⢄⠔⠁⡇⠑⢄⠀⠀⡇⠀⢀⠔⠁⡇⠑⢼⠔⠁⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    │⣇⣔⣁⣑⣄⣇⣀⣀⣑⣄⣇⣔⣁⣀⣀⣇⣔⣁⣑⣄⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀│ 
+    └────────────────────────────────────────┘ 
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.08
+ END	---------	8.245e-15	0.00	0.00	0.01		0.85	1.60	2.45
+	finished				SUM --&gt;	0.01			SUM --&gt;	2.54
+
+	 ndof =  1007
+@time  solver =  0.007557 seconds (2.40 k allocations: 2.632 MiB)
+@time  η eval =  0.003688 seconds (12.32 k allocations: 645.633 KiB)
+@time  e eval =  0.004891 seconds (473 allocations: 42.641 KiB)
+@time  refine =  0.000211 seconds (95 allocations: 127.891 KiB)
+	    η =  0.0381871224836708
+	    e =  0.004524743867373229
+------- LEVEL 11
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.12
+ END	---------	1.046e-14	0.01	0.01	0.01		1.30	2.36	3.66
+	finished				SUM --&gt;	0.01			SUM --&gt;	3.77
+
+	 ndof =  1549
+@time  solver =  0.011082 seconds (2.67 k allocations: 3.926 MiB)
+@time  η eval =  0.005335 seconds (20.66 k allocations: 982.148 KiB)
+@time  e eval =  0.007426 seconds (475 allocations: 48.828 KiB)
+@time  refine =  0.000288 seconds (109 allocations: 156.094 KiB)
+	    η =  0.025276908432074842
+	    e =  0.002998068228097714
+------- LEVEL 12
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.17
+ END	---------	1.229e-14	0.01	0.04	0.05		1.32	3.44	4.76
+	finished				SUM --&gt;	0.05			SUM --&gt;	4.92
+
+	 ndof =  2295
+@time  solver =  0.050475 seconds (2.96 k allocations: 5.107 MiB, 66.49% gc time)
+@time  η eval =  0.008188 seconds (32.33 k allocations: 1.426 MiB)
+@time  e eval =  0.011080 seconds (475 allocations: 57.516 KiB)
+@time  refine =  0.000454 seconds (104 allocations: 228.047 KiB)
+	    η =  0.01709211530104225
+	    e =  0.0020104230857149736
+------- LEVEL 13
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.24
+ END	---------	1.560e-14	0.01	0.01	0.02		1.97	5.29	7.26
+	finished				SUM --&gt;	0.02			SUM --&gt;	7.51
+
+	 ndof =  3497
+@time  solver =  0.025105 seconds (3.64 k allocations: 7.811 MiB)
+@time  η eval =  0.011628 seconds (51.02 k allocations: 2.171 MiB)
+@time  e eval =  0.016650 seconds (475 allocations: 71.328 KiB)
+@time  refine =  0.000624 seconds (127 allocations: 357.109 KiB)
+	    η =  0.011328829368444024
+	    e =  0.001318771126224443
+------- LEVEL 14
+ #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
+   	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
+ INI							0.00				0.36
+ END	---------	1.921e-14	0.02	0.02	0.04		2.72	7.41	10.13
+	finished				SUM --&gt;	0.04			SUM --&gt;	10.49
+
+	 ndof =  5242
+@time  solver =  0.036769 seconds (4.51 k allocations: 10.866 MiB)
+@time  η eval =  0.017125 seconds (78.17 k allocations: 3.282 MiB)
+@time  e eval =  0.024867 seconds (475 allocations: 91.453 KiB)
+
+    ndofs   |   || u - u_h ||    order | || ∇(u - u_h) ||   order |         η          order |
+============|==========================|==========================|==========================|
+        65  |     8.809e-03      0.00  |     1.209e-01      0.00  |     1.014e+00      0.00  |
+        85  |     4.021e-03      5.85  |     7.213e-02      3.85  |     6.070e-01      3.82  |
+       111  |     1.821e-03      5.94  |     4.823e-02      3.02  |     4.068e-01      3.00  |
+       137  |     1.173e-03      4.18  |     3.448e-02      3.19  |     2.922e-01      3.14  |
+       163  |     1.019e-03      1.62  |     2.718e-02      2.74  |     2.318e-01      2.66  |
+       225  |     6.199e-04      3.08  |     2.013e-02      1.86  |     1.652e-01      2.10  |
+       315  |     3.593e-04      3.24  |     1.424e-02      2.06  |     1.163e-01      2.09  |
+       451  |     2.276e-04      2.55  |     9.891e-03      2.03  |     8.248e-02      1.91  |
+       666  |     1.276e-04      2.97  |     6.812e-03      1.91  |     5.717e-02      1.88  |
+      1007  |     7.500e-05      2.57  |     4.525e-03      1.98  |     3.819e-02      1.95  |
+      1549  |     3.177e-05      3.99  |     2.998e-03      1.91  |     2.528e-02      1.92  |
+      2295  |     2.082e-05      2.15  |     2.010e-03      2.03  |     1.709e-02      1.99  |
+      3497  |     1.068e-05      3.17  |     1.319e-03      2.00  |     1.133e-02      1.95  |
+      5242  |     5.317e-06      3.45  |     8.757e-04      2.02  |     7.565e-03      1.99  |</code></pre><p><img src="../../images/Example210_LshapeAdaptivePoissonProblem_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example205_HeatEquation/">« 205 : Heat equation</a><a class="docs-footer-nextpage" href="../Example220_ReactionConvectionDiffusion/">220 : Reaction-Convection-Diffusion-Problem »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 30 August 2023 12:09">Wednesday 30 August 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
