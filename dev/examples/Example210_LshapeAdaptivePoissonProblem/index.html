@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>210 : Poisson L-shape Adaptive Mesh Refinement · ExtendableFEM.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">ExtendableFEM.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../package_index/">Index</a></li><li><span class="tocitem">Problem Description</span><ul><li><a class="tocitem" href="../../problemdescription/">Problem Description</a></li><li><a class="tocitem" href="../../nonlinearoperator/">NonlinearOperator</a></li><li><a class="tocitem" href="../../bilinearoperator/">BilinearOperator</a></li><li><a class="tocitem" href="../../linearoperator/">LinearOperator</a></li><li><a class="tocitem" href="../../interpolateboundarydata/">InterpolateBoundaryData</a></li><li><a class="tocitem" href="../../homogeneousdata/">HomogeneousData</a></li><li><a class="tocitem" href="../../fixdofs/">FixDofs</a></li><li><a class="tocitem" href="../../combinedofs/">CombineDofs</a></li><li><a class="tocitem" href="../../callbackoperator/">CallbackOperator</a></li></ul></li><li><span class="tocitem">Solving</span><ul><li><a class="tocitem" href="../../pdesolvers/">Stationary Solvers</a></li><li><a class="tocitem" href="../../pdesolvers_dt/">Time-dependent Solvers</a></li></ul></li><li><span class="tocitem">Postprocessing</span><ul><li><a class="tocitem" href="../../postprocessing/">Other packages</a></li><li><a class="tocitem" href="../../itemintegrators/">Item Integrators</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples_intro/">About the examples</a></li><li><a class="tocitem" href="../Example103_BurgersEquation/">103 : Burger&#39;s Equation</a></li><li><a class="tocitem" href="../Example105_NonlinearPoissonEquation/">105 : Nonlinear Poisson Equation</a></li><li><a class="tocitem" href="../Example106_NonlinearDiffusion/">106 : Nonlinear Diffusion</a></li><li><a class="tocitem" href="../Example108_RobinBoundaryCondition/">108 : Robin Boundary Condition</a></li><li><a class="tocitem" href="../Example201_PoissonProblem/">201 : Poisson-Problem</a></li><li><a class="tocitem" href="../Example202_MixedPoissonProblem/">202 : Poisson-Problem (Mixed)</a></li><li><a class="tocitem" href="../Example205_HeatEquation/">205 : Heat equation</a></li><li class="is-active"><a class="tocitem" href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li><li><a class="tocitem" href="../Example211_LshapeAdaptiveEQPoissonProblem/">211 : Poisson L-shape Local Equilibrated Fluxes</a></li><li><a class="tocitem" href="../Example220_ReactionConvectionDiffusion/">220 : Reaction-Convection-Diffusion-Problem</a></li><li><a class="tocitem" href="../Example225_ObstacleProblem/">225 : Obstacle Problem</a></li><li><a class="tocitem" href="../Example230_NonlinearElasticity/">230 : Nonlinear Elasticity</a></li><li><a class="tocitem" href="../Example235_StokesIteratedPenalty/">235 : Stokes iterated penalty method</a></li><li><a class="tocitem" href="../Example240_SVRTEnrichment/">240 : Stokes <span>$RT$</span> enrichment</a></li><li><a class="tocitem" href="../Example245_NSEFlowAroundCylinder/">245 : Flow around a cylinder</a></li><li><a class="tocitem" href="../Example250_NSELidDrivenCavity/">250 : Navier–Stokes Lid-driven cavity</a></li><li><a class="tocitem" href="../Example252_NSEPlanarLatticeFlow/">252 : Navier–Stokes Planar Lattice Flow</a></li><li><a class="tocitem" href="../Example260_AxisymmetricNavierStokesProblem/">260 : Axisymmetric Stokes</a></li><li><a class="tocitem" href="../Example265_FlowTransport/">265 : Flow + Transport</a></li><li><a class="tocitem" href="../Example270_NaturalConvectionProblem/">270 : Natural convection</a></li><li><a class="tocitem" href="../Example280_CompressibleStokes/">240 : Compressible Stokes 2D</a></li><li><a class="tocitem" href="../Example290_PoroElasticity/">290 : Poro-Elasticity</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="github.com/chmerdon/ExtendableFEM.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id=":-Poisson-L-shape-Adaptive-Mesh-Refinement"><a class="docs-heading-anchor" href="#:-Poisson-L-shape-Adaptive-Mesh-Refinement">210 : Poisson L-shape Adaptive Mesh Refinement</a><a id=":-Poisson-L-shape-Adaptive-Mesh-Refinement-1"></a><a class="docs-heading-anchor-permalink" href="#:-Poisson-L-shape-Adaptive-Mesh-Refinement" title="Permalink"></a></h1><p>(<a href="https://github.com/chmerdon/ExtendableFEM.jl/raw/master/examples/Example210_LshapeAdaptivePoissonProblem.jl">source code</a>)</p><p>This example computes the standard-residual error estimator for the <span>$H^1$</span> error <span>$e = u - u_h$</span> of some <span>$H^1$</span>-conforming approximation <span>$u_h$</span> to the solution <span>$u$</span> of some Poisson problem <span>$-\Delta u = f$</span> on an L-shaped domain, i.e.</p><p class="math-container">\[\eta^2(u_h) := \sum_{T \in \mathcal{T}} \lvert T \rvert \| f + \Delta u_h \|^2_{L^2(T)}
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>210 : Poisson L-shape Adaptive Mesh Refinement · ExtendableFEM.jl</title><meta name="title" content="210 : Poisson L-shape Adaptive Mesh Refinement · ExtendableFEM.jl"/><meta property="og:title" content="210 : Poisson L-shape Adaptive Mesh Refinement · ExtendableFEM.jl"/><meta property="twitter:title" content="210 : Poisson L-shape Adaptive Mesh Refinement · ExtendableFEM.jl"/><meta name="description" content="Documentation for ExtendableFEM.jl."/><meta property="og:description" content="Documentation for ExtendableFEM.jl."/><meta property="twitter:description" content="Documentation for ExtendableFEM.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">ExtendableFEM.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../package_index/">Index</a></li><li><span class="tocitem">Problem Description</span><ul><li><a class="tocitem" href="../../problemdescription/">Problem Description</a></li><li><a class="tocitem" href="../../nonlinearoperator/">NonlinearOperator</a></li><li><a class="tocitem" href="../../bilinearoperator/">BilinearOperator</a></li><li><a class="tocitem" href="../../linearoperator/">LinearOperator</a></li><li><a class="tocitem" href="../../interpolateboundarydata/">InterpolateBoundaryData</a></li><li><a class="tocitem" href="../../homogeneousdata/">HomogeneousData</a></li><li><a class="tocitem" href="../../fixdofs/">FixDofs</a></li><li><a class="tocitem" href="../../combinedofs/">CombineDofs</a></li><li><a class="tocitem" href="../../callbackoperator/">CallbackOperator</a></li></ul></li><li><span class="tocitem">Solving</span><ul><li><a class="tocitem" href="../../pdesolvers/">Stationary Solvers</a></li><li><a class="tocitem" href="../../pdesolvers_dt/">Time-dependent Solvers</a></li></ul></li><li><span class="tocitem">Postprocessing</span><ul><li><a class="tocitem" href="../../postprocessing/">Other packages</a></li><li><a class="tocitem" href="../../itemintegrators/">Item Integrators</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples_intro/">About the examples</a></li><li><a class="tocitem" href="../Example103_BurgersEquation/">103 : Burger&#39;s Equation</a></li><li><a class="tocitem" href="../Example105_NonlinearPoissonEquation/">105 : Nonlinear Poisson Equation</a></li><li><a class="tocitem" href="../Example106_NonlinearDiffusion/">106 : Nonlinear Diffusion</a></li><li><a class="tocitem" href="../Example108_RobinBoundaryCondition/">108 : Robin Boundary Condition</a></li><li><a class="tocitem" href="../Example201_PoissonProblem/">201 : Poisson-Problem</a></li><li><a class="tocitem" href="../Example202_MixedPoissonProblem/">202 : Poisson-Problem (Mixed)</a></li><li><a class="tocitem" href="../Example205_HeatEquation/">205 : Heat equation</a></li><li class="is-active"><a class="tocitem" href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li><li><a class="tocitem" href="../Example211_LshapeAdaptiveEQPoissonProblem/">211 : Poisson L-shape Local Equilibrated Fluxes</a></li><li><a class="tocitem" href="../Example220_ReactionConvectionDiffusion/">220 : Reaction-Convection-Diffusion-Problem</a></li><li><a class="tocitem" href="../Example225_ObstacleProblem/">225 : Obstacle Problem</a></li><li><a class="tocitem" href="../Example230_NonlinearElasticity/">230 : Nonlinear Elasticity</a></li><li><a class="tocitem" href="../Example235_StokesIteratedPenalty/">235 : Stokes iterated penalty method</a></li><li><a class="tocitem" href="../Example240_SVRTEnrichment/">240 : Stokes <span>$RT$</span> enrichment</a></li><li><a class="tocitem" href="../Example245_NSEFlowAroundCylinder/">245 : Flow around a cylinder</a></li><li><a class="tocitem" href="../Example250_NSELidDrivenCavity/">250 : Navier–Stokes Lid-driven cavity</a></li><li><a class="tocitem" href="../Example252_NSEPlanarLatticeFlow/">252 : Navier–Stokes Planar Lattice Flow</a></li><li><a class="tocitem" href="../Example260_AxisymmetricNavierStokesProblem/">260 : Axisymmetric Stokes</a></li><li><a class="tocitem" href="../Example265_FlowTransport/">265 : Flow + Transport</a></li><li><a class="tocitem" href="../Example270_NaturalConvectionProblem/">270 : Natural convection</a></li><li><a class="tocitem" href="../Example280_CompressibleStokes/">240 : Compressible Stokes 2D</a></li><li><a class="tocitem" href="../Example290_PoroElasticity/">290 : Poro-Elasticity</a></li><li><a class="tocitem" href="../Example301_PoissonProblem/">201 : Poisson-Problem</a></li><li><a class="tocitem" href="../Example310_DivFreeBasis/">310 : Div-free RT0 basis</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>210 : Poisson L-shape Adaptive Mesh Refinement</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="github.com/chmerdon/ExtendableFEM.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id=":-Poisson-L-shape-Adaptive-Mesh-Refinement"><a class="docs-heading-anchor" href="#:-Poisson-L-shape-Adaptive-Mesh-Refinement">210 : Poisson L-shape Adaptive Mesh Refinement</a><a id=":-Poisson-L-shape-Adaptive-Mesh-Refinement-1"></a><a class="docs-heading-anchor-permalink" href="#:-Poisson-L-shape-Adaptive-Mesh-Refinement" title="Permalink"></a></h1><p>(<a href="https://github.com/chmerdon/ExtendableFEM.jl/raw/master/examples/Example210_LshapeAdaptivePoissonProblem.jl">source code</a>)</p><p>This example computes the standard-residual error estimator for the <span>$H^1$</span> error <span>$e = u - u_h$</span> of some <span>$H^1$</span>-conforming approximation <span>$u_h$</span> to the solution <span>$u$</span> of some Poisson problem <span>$-\Delta u = f$</span> on an L-shaped domain, i.e.</p><p class="math-container">\[\eta^2(u_h) := \sum_{T \in \mathcal{T}} \lvert T \rvert \| f + \Delta u_h \|^2_{L^2(T)}
 + \sum_{F \in \mathcal{F}} \lvert F \rvert \| [[\nabla u_h \cdot \mathbf{n}]] \|^2_{L^2(F)}\]</p><p>This example script showcases the evaluation of 2nd order derivatives like the Laplacian and adaptive mesh refinement.</p><pre><code class="language-julia hljs">module Example210_LshapeAdaptivePoissonProblem
 
 using ExtendableFEM
@@ -190,10 +190,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.25
 
 	 ndof =  65
-@time  solver =  0.001978 seconds (1.84 k allocations: 295.297 KiB)
-@time  η eval =  0.000781 seconds (1.33 k allocations: 83.758 KiB)
-@time  e eval =  0.000407 seconds (472 allocations: 32.188 KiB)
-@time  refine =  0.000037 seconds (61 allocations: 7.969 KiB)
+@time  solver =  0.002408 seconds (1.84 k allocations: 295.297 KiB)
+@time  η eval =  0.001050 seconds (1.33 k allocations: 83.758 KiB)
+@time  e eval =  0.000466 seconds (472 allocations: 32.188 KiB)
+@time  refine =  0.000046 seconds (61 allocations: 7.969 KiB)
 	    η =  1.0136544491990602
 	    e =  0.12088162458820484
 ------- LEVEL 2
@@ -227,10 +227,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.27
 
 	 ndof =  85
-@time  solver =  0.026372 seconds (1.85 k allocations: 310.305 KiB, 92.72% gc time)
-@time  η eval =  0.000849 seconds (1.53 k allocations: 96.555 KiB)
-@time  e eval =  0.000500 seconds (470 allocations: 32.250 KiB)
-@time  refine =  0.000036 seconds (62 allocations: 11.750 KiB)
+@time  solver =  0.001897 seconds (1.84 k allocations: 310.180 KiB)
+@time  η eval =  0.000929 seconds (1.53 k allocations: 96.555 KiB)
+@time  e eval =  0.000533 seconds (470 allocations: 32.250 KiB)
+@time  refine =  0.000045 seconds (62 allocations: 11.750 KiB)
 	    η =  0.6070065806022737
 	    e =  0.07212627945120852
 ------- LEVEL 3
@@ -264,10 +264,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.32
 
 	 ndof =  111
-@time  solver =  0.001632 seconds (1.86 k allocations: 363.383 KiB)
-@time  η eval =  0.000734 seconds (1.78 k allocations: 109.617 KiB)
-@time  e eval =  0.000581 seconds (470 allocations: 32.516 KiB)
-@time  refine =  0.000034 seconds (64 allocations: 13.219 KiB)
+@time  solver =  0.001915 seconds (1.86 k allocations: 363.383 KiB)
+@time  η eval =  0.000971 seconds (1.78 k allocations: 109.617 KiB)
+@time  e eval =  0.000629 seconds (470 allocations: 32.516 KiB)
+@time  refine =  0.000044 seconds (64 allocations: 13.219 KiB)
 	    η =  0.40677133325934156
 	    e =  0.0482293571503376
 ------- LEVEL 4
@@ -301,10 +301,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.39
 
 	 ndof =  137
-@time  solver =  0.001702 seconds (1.88 k allocations: 442.305 KiB)
-@time  η eval =  0.000959 seconds (2.02 k allocations: 122.477 KiB)
-@time  e eval =  0.000699 seconds (470 allocations: 32.828 KiB)
-@time  refine =  0.000042 seconds (68 allocations: 18.234 KiB)
+@time  solver =  0.001980 seconds (1.88 k allocations: 442.305 KiB)
+@time  η eval =  0.000974 seconds (2.02 k allocations: 122.477 KiB)
+@time  e eval =  0.000729 seconds (470 allocations: 32.828 KiB)
+@time  refine =  0.000061 seconds (68 allocations: 18.234 KiB)
 	    η =  0.2921985504768297
 	    e =  0.03448375985345018
 ------- LEVEL 5
@@ -338,10 +338,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.45
 
 	 ndof =  163
-@time  solver =  0.001848 seconds (1.89 k allocations: 506.102 KiB)
-@time  η eval =  0.001018 seconds (2.27 k allocations: 138.039 KiB)
-@time  e eval =  0.000865 seconds (470 allocations: 33.141 KiB)
-@time  refine =  0.000050 seconds (70 allocations: 19.781 KiB)
+@time  solver =  0.002131 seconds (1.89 k allocations: 506.102 KiB)
+@time  η eval =  0.001154 seconds (2.27 k allocations: 138.039 KiB)
+@time  e eval =  0.000860 seconds (470 allocations: 33.141 KiB)
+@time  refine =  0.000065 seconds (70 allocations: 19.781 KiB)
 	    η =  0.2318262809680798
 	    e =  0.027182306884589353
 ------- LEVEL 6
@@ -375,10 +375,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.57
 
 	 ndof =  225
-@time  solver =  0.002263 seconds (1.91 k allocations: 634.422 KiB)
-@time  η eval =  0.001045 seconds (2.88 k allocations: 169.039 KiB)
-@time  e eval =  0.001284 seconds (470 allocations: 33.875 KiB)
-@time  refine =  0.000052 seconds (72 allocations: 23.031 KiB)
+@time  solver =  0.002574 seconds (1.91 k allocations: 634.422 KiB)
+@time  η eval =  0.001306 seconds (2.88 k allocations: 169.039 KiB)
+@time  e eval =  0.001140 seconds (470 allocations: 33.875 KiB)
+@time  refine =  0.000075 seconds (72 allocations: 23.031 KiB)
 	    η =  0.16521774252356994
 	    e =  0.02013144451368136
 ------- LEVEL 7
@@ -412,10 +412,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	0.86
 
 	 ndof =  315
-@time  solver =  0.002866 seconds (1.93 k allocations: 936.328 KiB)
-@time  η eval =  0.001474 seconds (3.77 k allocations: 225.336 KiB)
-@time  e eval =  0.001684 seconds (470 allocations: 34.875 KiB)
-@time  refine =  0.000069 seconds (75 allocations: 39.156 KiB)
+@time  solver =  0.003209 seconds (1.93 k allocations: 936.328 KiB)
+@time  η eval =  0.001603 seconds (3.77 k allocations: 225.336 KiB)
+@time  e eval =  0.001571 seconds (470 allocations: 34.875 KiB)
+@time  refine =  0.000095 seconds (75 allocations: 39.156 KiB)
 	    η =  0.11628117656103873
 	    e =  0.01424333452296225
 ------- LEVEL 8
@@ -449,10 +449,10 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.00			SUM --&gt;	1.15
 
 	 ndof =  451
-@time  solver =  0.003737 seconds (1.97 k allocations: 1.204 MiB)
-@time  η eval =  0.001841 seconds (5.29 k allocations: 311.805 KiB)
-@time  e eval =  0.002319 seconds (470 allocations: 36.438 KiB)
-@time  refine =  0.000092 seconds (75 allocations: 53.375 KiB)
+@time  solver =  0.004092 seconds (1.97 k allocations: 1.204 MiB)
+@time  η eval =  0.002143 seconds (5.29 k allocations: 311.805 KiB)
+@time  e eval =  0.002186 seconds (470 allocations: 36.438 KiB)
+@time  refine =  0.000126 seconds (75 allocations: 53.375 KiB)
 	    η =  0.08247990319840433
 	    e =  0.009890770104296608
 ------- LEVEL 9
@@ -482,14 +482,14 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.06
- END	---------	5.847e-15	0.00	0.00	0.00		0.55	1.06	1.61
-	finished				SUM --&gt;	0.00			SUM --&gt;	1.67
+ END	---------	5.847e-15	0.00	0.00	0.01		0.55	1.06	1.61
+	finished				SUM --&gt;	0.01			SUM --&gt;	1.67
 
 	 ndof =  666
-@time  solver =  0.005150 seconds (2.28 k allocations: 1.755 MiB)
-@time  η eval =  0.002665 seconds (7.64 k allocations: 431.023 KiB)
-@time  e eval =  0.003068 seconds (472 allocations: 39.531 KiB)
-@time  refine =  0.000122 seconds (87 allocations: 65.562 KiB)
+@time  solver =  0.005717 seconds (2.28 k allocations: 1.755 MiB)
+@time  η eval =  0.002929 seconds (7.64 k allocations: 431.023 KiB)
+@time  e eval =  0.003185 seconds (472 allocations: 39.531 KiB)
+@time  refine =  0.000164 seconds (87 allocations: 65.562 KiB)
 	    η =  0.057172241179725726
 	    e =  0.006812212792947163
 ------- LEVEL 10
@@ -523,38 +523,38 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
 	finished				SUM --&gt;	0.01			SUM --&gt;	2.54
 
 	 ndof =  1007
-@time  solver =  0.007278 seconds (2.48 k allocations: 2.635 MiB)
-@time  η eval =  0.003664 seconds (12.32 k allocations: 645.852 KiB)
-@time  e eval =  0.004583 seconds (470 allocations: 42.750 KiB)
-@time  refine =  0.000181 seconds (95 allocations: 127.891 KiB)
+@time  solver =  0.008166 seconds (2.48 k allocations: 2.635 MiB)
+@time  η eval =  0.004131 seconds (12.32 k allocations: 645.852 KiB)
+@time  e eval =  0.004844 seconds (470 allocations: 42.750 KiB)
+@time  refine =  0.000249 seconds (95 allocations: 127.891 KiB)
 	    η =  0.0381871224836708
 	    e =  0.004524743867373229
 ------- LEVEL 11
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.12
- END	---------	1.046e-14	0.00	0.01	0.01		1.30	2.36	3.66
+ END	---------	1.046e-14	0.01	0.01	0.01		1.30	2.36	3.66
 	finished				SUM --&gt;	0.01			SUM --&gt;	3.78
 
 	 ndof =  1549
-@time  solver =  0.010721 seconds (2.75 k allocations: 3.929 MiB)
-@time  η eval =  0.005215 seconds (20.66 k allocations: 982.664 KiB)
-@time  e eval =  0.007211 seconds (472 allocations: 48.938 KiB)
-@time  refine =  0.000244 seconds (109 allocations: 156.094 KiB)
+@time  solver =  0.011934 seconds (2.75 k allocations: 3.929 MiB)
+@time  η eval =  0.005865 seconds (20.65 k allocations: 982.367 KiB)
+@time  e eval =  0.007332 seconds (472 allocations: 48.938 KiB)
+@time  refine =  0.000314 seconds (109 allocations: 156.094 KiB)
 	    η =  0.025276908432074842
 	    e =  0.002998068228097714
 ------- LEVEL 12
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.17
- END	---------	1.229e-14	0.01	0.01	0.01		1.32	3.44	4.76
-	finished				SUM --&gt;	0.01			SUM --&gt;	4.93
+ END	---------	1.229e-14	0.01	0.01	0.02		1.32	3.44	4.76
+	finished				SUM --&gt;	0.02			SUM --&gt;	4.93
 
 	 ndof =  2295
-@time  solver =  0.015436 seconds (3.00 k allocations: 5.110 MiB)
-@time  η eval =  0.007309 seconds (32.32 k allocations: 1.427 MiB)
-@time  e eval =  0.010785 seconds (472 allocations: 57.625 KiB)
-@time  refine =  0.000359 seconds (104 allocations: 228.047 KiB)
+@time  solver =  0.017620 seconds (3.00 k allocations: 5.110 MiB)
+@time  η eval =  0.008394 seconds (32.32 k allocations: 1.427 MiB)
+@time  e eval =  0.010775 seconds (472 allocations: 57.625 KiB)
+@time  refine =  0.000429 seconds (104 allocations: 228.047 KiB)
 	    η =  0.01709211530104225
 	    e =  0.0020104230857149736
 ------- LEVEL 13
@@ -562,26 +562,26 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.25
  END	---------	1.560e-14	0.01	0.01	0.02		1.97	5.29	7.26
-	finished				SUM --&gt;	0.02			SUM --&gt;	7.51
+	finished				SUM --&gt;	0.03			SUM --&gt;	7.51
 
 	 ndof =  3497
-@time  solver =  0.023531 seconds (3.72 k allocations: 7.814 MiB)
-@time  η eval =  0.010837 seconds (51.01 k allocations: 2.171 MiB)
-@time  e eval =  0.015939 seconds (472 allocations: 71.438 KiB)
-@time  refine =  0.000510 seconds (127 allocations: 357.109 KiB)
+@time  solver =  0.026319 seconds (3.72 k allocations: 7.814 MiB)
+@time  η eval =  0.012405 seconds (51.01 k allocations: 2.171 MiB)
+@time  e eval =  0.016423 seconds (472 allocations: 71.438 KiB)
+@time  refine =  0.000602 seconds (127 allocations: 357.109 KiB)
 	    η =  0.011328829368444024
 	    e =  0.001318771126224443
 ------- LEVEL 14
  #IT	------- RESIDUALS -------	---- DURATION (s) ----		---- ALLOCATIONS (MiB) ----
    	NONLINEAR	LINEAR		ASSEMB	SOLVE	TOTAL		ASSEMB	SOLVE	TOTAL
  INI							0.00				0.36
- END	---------	1.921e-14	0.02	0.03	0.05		2.72	7.41	10.13
-	finished				SUM --&gt;	0.05			SUM --&gt;	10.49
+ END	---------	1.921e-14	0.05	0.02	0.07		2.72	7.41	10.13
+	finished				SUM --&gt;	0.07			SUM --&gt;	10.49
 
 	 ndof =  5242
-@time  solver =  0.050500 seconds (4.64 k allocations: 10.869 MiB, 31.89% gc time)
-@time  η eval =  0.015701 seconds (78.17 k allocations: 3.282 MiB)
-@time  e eval =  0.023851 seconds (472 allocations: 91.562 KiB)
+@time  solver =  0.071807 seconds (4.65 k allocations: 10.869 MiB, 43.88% gc time)
+@time  η eval =  0.017408 seconds (78.17 k allocations: 3.282 MiB)
+@time  e eval =  0.024389 seconds (472 allocations: 91.562 KiB)
 
     ndofs   |   || u - u_h ||    order | || ∇(u - u_h) ||   order |         η          order |
 ============|==========================|==========================|==========================|
@@ -598,4 +598,4 @@ end # module</code></pre><hr/><p><em>This page was generated using <a href="http
       1549  |     3.177e-05      3.99  |     2.998e-03      1.91  |     2.528e-02      1.92  |
       2295  |     2.082e-05      2.15  |     2.010e-03      2.03  |     1.709e-02      1.99  |
       3497  |     1.068e-05      3.17  |     1.319e-03      2.00  |     1.133e-02      1.95  |
-      5242  |     5.317e-06      3.45  |     8.757e-04      2.02  |     7.565e-03      1.99  |</code></pre><p><img src="../../images/Example210_LshapeAdaptivePoissonProblem_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example205_HeatEquation/">« 205 : Heat equation</a><a class="docs-footer-nextpage" href="../Example211_LshapeAdaptiveEQPoissonProblem/">211 : Poisson L-shape Local Equilibrated Fluxes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 12 September 2023 08:55">Tuesday 12 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+      5242  |     5.317e-06      3.45  |     8.757e-04      2.02  |     7.565e-03      1.99  |</code></pre><p><img src="../../images/Example210_LshapeAdaptivePoissonProblem_1.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example205_HeatEquation/">« 205 : Heat equation</a><a class="docs-footer-nextpage" href="../Example211_LshapeAdaptiveEQPoissonProblem/">211 : Poisson L-shape Local Equilibrated Fluxes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.1 on <span class="colophon-date" title="Tuesday 19 September 2023 07:35">Tuesday 19 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
