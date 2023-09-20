@@ -31,6 +31,7 @@ end
 function main(;
 	nrefs = 4,                      ## number of refinement levels
 	bonus_quadorder = 2,            ## additional quadrature order for data evaluations
+	divfree_basis = true,			## if true uses curl(N0), if false uses mixed FEM RT0xP0
 	Plotter = nothing,              ## Plotter (e.g. PyPlot)
 	kwargs...)
 
@@ -47,56 +48,76 @@ function main(;
 		result .-= u
 		result .= result .^ 2
 	end
-	ErrorIntegratorExact = ItemIntegrator(exact_error!, [curl3(1)]; bonus_quadorder = 2 + bonus_quadorder, kwargs...)
+	ErrorIntegratorExact = ItemIntegrator(exact_error!, [divfree_basis ? curl3(1) : id(1)]; bonus_quadorder = 2 + bonus_quadorder, kwargs...)
 	NDofs = zeros(Int, nrefs)
-	L2error = zeros(Float64, nrefs, 5)
+	L2error = zeros(Float64, nrefs)
 
-	sol = nothing
-	xgrid = nothing
 	for lvl ∈ 1:nrefs
 		# grid
 		xgrid = uniform_refine(grid_unitcube(Tetrahedron3D), lvl)
 
-		# get subset of edges, spanning the node graph
-		spanning_tree = get_spanning_edge_subset(xgrid)
+		if divfree_basis
+			# get subset of edges, spanning the node graph
+			spanning_tree = get_spanning_edge_subset(xgrid)
 
-		# get all other edges = linear independent degrees of freedom
-		subset = setdiff(1:num_edges(xgrid), spanning_tree)
+			# get all other edges = linear independent degrees of freedom
+			@time subset = setdiff(1:num_edges(xgrid), spanning_tree)
 
-		# Generate lowest order Nedelec FESpace
-		FES = FESpace{HCURLN0{3}}(xgrid)
-		NDofs[lvl] = length(subset)
+			# generate lowest order Nedelec FESpace
+			FES = FESpace{HCURLN0{3}}(xgrid)
+			NDofs[lvl] = length(subset)
 
-		# assemble full Nedelec mass matrix
-		M = FEMatrix(FES)
-		b = FEVector(FES)
-		assemble!(M, BilinearOperator([curl3(1)]))
-		assemble!(b, LinearOperator(exact_u!, [curl3(1)]; bonus_quadorder = bonus_quadorder))
+			# assemble full Nedelec mass matrix
+			A = FEMatrix(FES)
+			b = FEVector(FES)
+			assemble!(A, BilinearOperator([curl3(1)]))
+			assemble!(b, LinearOperator(exact_u!, [curl3(1)]; bonus_quadorder = bonus_quadorder))
 
-		# restrict to linear independent basis
-		Z = ExtendableSparseMatrix{Float64, Int64}(length(subset), FES.ndofs)
-		for j = 1 : length(subset)
-			Z[j,subset[j]] = 1
+			# restrict to linear independent basis
+			Z = ExtendableSparseMatrix{Float64, Int64}(length(subset), FES.ndofs)
+			for j = 1 : length(subset)
+				Z[j,subset[j]] = 1
+			end
+			Ared = Z * (A.entries * Z&#39;)
+			bred = Z * b.entries
+
+			# solve
+			sol = FEVector(FES)
+			@time sol.entries[subset] .= Ared\bred
+		else
+			# use RT0 functions + side constraint for divergence
+			FES = [FESpace{HDIVRT0{3}}(xgrid), FESpace{L2P0{1}}(xgrid)]
+			NDofs[lvl] = FES[1].ndofs + FES[2].ndofs
+
+			A = FEMatrix(FES)
+			b = FEVector(FES)
+			assemble!(A, BilinearOperator([id(1)]))
+			assemble!(A, BilinearOperator([div(1)], [id(2)]; transposed_copy = 1))
+			assemble!(b, LinearOperator(exact_u!, [id(1)]; bonus_quadorder = bonus_quadorder))
+
+			# solve
+			sol = FEVector(FES)
+			@time sol.entries .= A.entries\b.entries
 		end
-		M2 = Z * (M.entries * Z&#39;)
-		b2 = Z * b.entries
 
-		# solve
-		sol = FEVector(FES)
-		sol.entries[subset] .= M2\b2
 
 		# check residual
-		@info &quot;residual = $(norm(M.entries * sol.entries - b.entries))&quot;
+		@info &quot;residual = $(norm(A.entries * sol.entries - b.entries))&quot;
 
 		# evalute error
 		error = evaluate(ErrorIntegratorExact, sol)
 		L2error[lvl] = sqrt(sum(view(error, 1, :)) + sum(view(error, 2, :)))
-		@info &quot;|| curl(ϕ - ϕ_h) || = $(L2error[lvl])&quot;
+		if divfree_basis
+			@info &quot;|| u - curl(ϕ_h) || = $(L2error[lvl])&quot;
+			scalarplot!(pl[1, 1], xgrid, nodevalues(sol[1], Curl3D; abs = true)[1, :]; Plotter = Plotter)
+		else
+			@info &quot;|| u - u_h || = $(L2error[lvl])&quot;
+			scalarplot!(pl[1, 1], xgrid, nodevalues(sol[1]; abs = true)[1, :]; Plotter = Plotter)
+		end
 	end
 
-	# plot and print convergence history as table
-	scalarplot!(pl[1, 1], xgrid, nodevalues(sol[1], Curl3D; abs = true)[1, :]; Plotter = Plotter)
-	print_convergencehistory(NDofs, L2error; X_to_h = X -&gt; X .^ (-1 / 3), ylabels = [&quot;|| u - u_h ||&quot;, &quot;|| ∇(u - u_h) ||&quot;, &quot;|| uR ||&quot;, &quot;|| p - p_h ||&quot;, &quot;|| div(u + uR) ||&quot;], xlabel = &quot;ndof&quot;)
+	# print convergence history as table
+	print_convergencehistory(NDofs, L2error; X_to_h = X -&gt; X .^ (-1 / 3), ylabels = [&quot;|| u - u_h ||&quot;], xlabel = &quot;ndof&quot;)
 end
 
 
@@ -104,7 +125,7 @@ end
 function get_spanning_edge_subset(xgrid)
 	nnodes = num_nodes(xgrid)
 	edgenodes = xgrid[EdgeNodes]
-	@time bedgenodes = xgrid[BEdgeNodes]
+	bedgenodes = xgrid[BEdgeNodes]
 	bedgeedges = xgrid[BEdgeEdges]
 
 	# boolean arrays to memorize which nodes are visited
@@ -149,14 +170,18 @@ end
 
 
 end # module</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p><p><strong>Default output:</strong></p><pre><code class="nohighlight hljs">julia&gt; Example310_DivFreeBasis.main()
-  0.000153 seconds (71 allocations: 21.203 KiB)
-  0.000909 seconds (2.59 k allocations: 141.938 KiB)
-  0.007943 seconds (53.67 k allocations: 1.554 MiB)
-  0.072715 seconds (453.28 k allocations: 12.948 MiB)
+  0.000012 seconds (11 allocations: 4.648 KiB)
+  0.000261 seconds (59 allocations: 59.406 KiB)
+  0.000074 seconds (16 allocations: 53.352 KiB)
+  0.001150 seconds (59 allocations: 546.953 KiB)
+  0.000239 seconds (14 allocations: 126.508 KiB)
+  0.014695 seconds (70 allocations: 6.419 MiB)
+  0.002695 seconds (16 allocations: 903.133 KiB)
+  0.379821 seconds (70 allocations: 96.092 MiB, 5.33% gc time)
 
-    ndof    |   || u - u_h ||    order | || ∇(u - u_h) ||   order |     || uR ||       order |   || p - p_h ||    order | || div(u + uR) ||  order |
-============|==========================|==========================|==========================|==========================|==========================|
-        72  |     1.257e-01      0.00  |     0.000e+00      0.00  |     0.000e+00      0.00  |     0.000e+00      0.00  |     0.000e+00      0.00  |
-       480  |     6.821e-02      0.97  |     0.000e+00      NaN  |     0.000e+00      NaN  |     0.000e+00      NaN  |     0.000e+00      NaN  |
-      3456  |     3.510e-02      1.01  |     0.000e+00      NaN  |     0.000e+00      NaN  |     0.000e+00      NaN  |     0.000e+00      NaN  |
-     26112  |     1.772e-02      1.01  |     0.000e+00      NaN  |     0.000e+00      NaN  |     0.000e+00      NaN  |     0.000e+00      NaN  |</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example301_PoissonProblem/">« 201 : Poisson-Problem</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.1 on <span class="colophon-date" title="Tuesday 19 September 2023 07:35">Tuesday 19 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+    ndof    |   || u - u_h ||    order |
+============|==========================|
+        72  |     1.257e-01      0.00  |
+       480  |     6.821e-02      0.97  |
+      3456  |     3.510e-02      1.01  |
+     26112  |     1.772e-02      1.01  |</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Example301_PoissonProblem/">« 201 : Poisson-Problem</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.1 on <span class="colophon-date" title="Wednesday 20 September 2023 07:06">Wednesday 20 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
